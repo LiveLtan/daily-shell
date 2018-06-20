@@ -1,0 +1,122 @@
+#!/bin/bash
+adb='/home/ltan/system-config/bin/my-adb'
+project=$1
+oldDir=`pwd`
+android_project=''
+product_type=''
+androidO=''
+
+case $1 in
+    t2|icekey)
+    project='icesky_msm8992'
+    android_project='/home/ltan/src/android-t2-dev/'
+    product_type='icesky_msm8992-userdebug'
+    androidO=false
+    ;;
+    m1|surabaya)
+    project='surabaya'
+    android_project='/home/ltan/src/android-surabaya-dev/'
+    product_type='surabaya-userdebug'
+    androidO=false
+    ;;
+    osborn)
+    project='osborn'
+    android_project='/home/ltan/src/android-osborn-dev/'
+    product_type='osborn-userdebug'
+    ;;
+    odin)
+    project='odin'
+    android_project='/home/ltan/src/android-odin-dev/'
+    product_type='odin-userdebug'
+    ;;
+    trident)
+    project='trident'
+    android_project='/home/ltan/src/android-trident-dev/'
+    product_type='trident-userdebug'
+    androidO=true
+    ;;
+    trinity)
+    project='trinity'
+    android_project='/home/ltan/src/android-trident-trinity/'
+    product_type='trident_tnt-userdebug'
+    androidO=true
+    ;;
+    oscar)
+    project='oscar'
+    android_project='/home/ltan/src/android-oscar-dev/'
+    product_type='oscar-userdebug'
+    ;;
+    ocean)
+    project='ocean'
+    android_project='/home/ltan/src/android-ocean-dev/'
+    product_type='ocean-userdebug'
+    androidO=false
+    ;;
+    *)
+    ;;
+esac
+
+function checkResult() {
+    res=$1
+    if test $res -eq 0;then
+        buildResult='SUCCESSED'
+    else
+        buildResult='FAILed'
+    fi
+    echo -e "------------- BUILD $buildResult ------------\n"
+}
+
+which "mmm-bhj"
+cd $android_project
+. kill_android_build
+
+#mmm packages/apps/SettingsSmartisan/;$adb push out/target/product/$project/system/priv-app/SettingsSmartisan/ /system/priv-app/;$adb k setting;
+function setupEnv() {
+    . build/envsetup.sh
+    lunch $product_type
+}
+
+buildResult=''
+#targetLogFile='out/mm_SettingsSmartisan.log'
+targetLogFile='out/mm_-trident-packages_apps_SettingsSmartisan_Android.mk.log'
+if test "$androidO" = true;then
+    cd 'packages/apps/SettingsSmartisan/'
+    #-a "a" = "b"
+    if test -f $targetLogFile -a "a" = "b";then
+        tmp_command=$(grep -P -o '\[prebuilts/build-tools/linux-x86/bin/ninja.*\]' $targetLogFile | tr -d '[]')
+        #echo "tmp_command--"$tmp_command
+        CCACHE_DISABLE=true time $tmp_command
+    else
+        # bhj updated quick mode.
+        mm -q
+        if test $? -gt 0;then
+            mm -v | tee $android_project"$targetLogFile"
+        fi
+    fi
+    #CCACHE_DISABLE=true time
+else
+    #command='
+    setupEnv
+    mmm packages/apps/SettingsSmartisan/ -j8
+fi
+checkResult $?
+
+if test "$buildResult" = "FAILed" &&
+        "$androidO" = "true"; then
+    . sz
+    mm -v | tee $android_project"$targetLogFile"
+    checkResult $?
+fi
+if test "$buildResult" = "SUCCESSED" -a "$2" = "start";then
+    cd $android_project
+    if test "$androidO" = "111";then
+        $adb push out/target/product/$project/system/priv-app/SettingsSmartisan/SettingsSmartisan.apk /system/priv-app/SettingsSmartisan/;$adb k setting;
+    else
+        $adb push out/target/product/$project/system/priv-app/SettingsSmartisan/ /system/priv-app/;$adb k setting;
+    fi
+    sleep 1;
+    $adb shell am start -n com.android.settings/.Settings
+fi
+. kill_android_build
+cd $oldDir
+

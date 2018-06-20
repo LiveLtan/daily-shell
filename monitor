@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo 'monitor is running now!'
+exec /data/env/android-sdk/tools/monitor 1> /dev/null 2>&1 &
+exit

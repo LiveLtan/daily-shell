@@ -1,0 +1,27 @@
+#!/bin/bash
+#$oldDir =~ "odin"
+
+oldDir=`pwd`
+
+if [[ $oldDir =~ "android-" ]];then
+    # have android source code
+    sr
+else
+    exit -1;    
+fi
+echo "path is:" $1
+case $1 in
+    base)
+        cd frameworks/base/
+    ;;
+    base-ex|ex)
+        cd frameworks/base/
+    ;;
+    smbase|smartisanos-base)
+        cd frameworks/smartisanos-base/
+    ;;
+    *)
+    break
+    ;;
+esac
+

@@ -1,0 +1,24 @@
+#!/bin/bash
+
+#lastLine=`tail Android.mk -1`
+currentDir='.'
+m_make() {
+    rootDir=''
+    if test "$3" = ".";then
+        lastLine=`cat -n $rootDir$1/Android.mk | grep "call all-ma" | cut -d "i" -f1`
+        sed -i "$lastLine"'s/include/#include/g' $rootDir$1/Android.mk
+        echo "You can make only the "$2" directory!"
+        make $2
+    elif test "$3" = "";then
+        lastLine=`cat -n $rootDir$1/Android.mk | grep "call all-ma" | cut -d "#" -f1`
+        sed -i "$lastLine"'s/#include/include/g' $rootDir$1/Android.mk
+        echo "You will compile the "$2" directory and under folder moude!"
+        make $2
+    fi
+}
+if test "$1" = "";then
+    exit
+fi
+echo `pwd .`
+m_make $currentDir/packages/apps/$1 $1 $2
+

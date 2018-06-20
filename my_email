@@ -1,0 +1,166 @@
+#!/bin/bash
+#"$the_mailx $send_as -Ssmtp-auth=login -S from=$($getme mail) $STARTTLS -S smtp=$scheme$($getme smtp):$($getme smtp-port) 
+#-S smtp-auth-user=$($getme mail) -S smtp-auth-password=%q " "$auth"
+
+Usage() {
+
+    echo "Usage: $prog_name [recipient]... OPTIONS"
+    echo
+    echo "Main Options:"
+    echo "    -h:                 this little help"
+    echo "    -t recipient:       mail to somebody"
+    echo "    -c cc_recipient:    cc to somebody"
+    echo "    -b bcc_recipient:   bcc to somebody"
+    echo "    -s subject:         subject"
+    echo "    -a file:            attachments"
+    echo "    -m message:         the mail text, refer to a file"
+    exit "$@"
+}
+
+function die() {
+    echo Error: "$@"
+    echo
+    Usage 1
+}
+
+function check_arg() {
+    if [[ -z "$1" ]];then
+        Usage 1;
+    fi
+    arg='-'
+    if [[ "$1" = "$arg"* ]];then
+        die 'error message start with -'$1
+    fi
+}
+
+function printArray() {
+    array=$1
+    eval echo "All field of array \'$array\' are:"'${'$array'[@]}'
+
+    #eval length='${#'$array'[@]}'
+    #let length=length-1
+    #for i in `seq 0 $length`
+    #do
+    #    eval echo item $i is:'${'$array'['$i']}'
+    #done
+}
+
+function readAttach() {
+    targetLink=$1
+    array='attachments'
+    #eval attachments='(${'$array[@]} $(readlink -m '$targetLink'))'
+    eval $array='(${'$array'[@]} $(readlink -e '$targetLink'))'
+    return 0;
+}
+
+mailArgsBuilder=''
+params=$@
+
+#array to[] cc[] bcc[] attachments[]
+rec_type=to
+while true; do
+    case $1 in
+        [^-]*)
+            if [ $rec_type = "attachments" ];then
+                readAttach "$1"
+            else
+                eval $rec_type='("${'$rec_type'[@]}" "$1")'
+            fi
+            shift 1
+        ;;
+        -t)
+            check_arg "$2"
+            rec_type=to
+            shift
+        ;;
+        -c)
+            check_arg "$2"
+            rec_type=cc
+            shift
+        ;;
+        -b)
+            check_arg "$2"
+            rec_type=bcc
+            shift
+        ;;
+        -s)
+            check_arg "$2"
+            rec_type=subject
+            shift
+        ;;
+        -m)
+            check_arg "$2"
+            #mailArgsBuilder="$mailArgsBuilder -m '$2'"
+            emailMessage=("$2")
+            shift 2
+        ;;
+        -a)
+            check_arg "$2"
+            rec_type=attachments
+            shift 1
+        ;;
+        -h)
+            Usage
+            shift
+        ;;
+        -*)
+            die "unknown option"$1
+        ;;
+        *)
+        break;
+        ;;
+    esac
+done
+
+#echo email params:$params
+
+(
+printf "/usr/bin/mail "
+for i in attachments subject cc bcc to
+do
+    eval '
+    if test ${#'$i'[@]} != 0;then
+        let length=${#'$i'[@]}-1
+        type=""
+        case $i in
+                cc)
+                    type="-c"
+                ;;
+                bcc)
+                    type="-b"
+                ;;
+                subject)
+                    type="-s"
+                ;;
+        esac
+        if test $i = "attachments";then
+            for j in $(seq 0 $length)
+            do
+                attach="${'$i'[$j]}"
+                printf -- " -a %q " $attach
+            done
+        elif [[ '$i' =~ subject|cc|bcc|to ]];then
+            if test '$i' != to;then
+                printf  -- "%q " "$type"
+            fi
+            for j in $(seq 0 $length)
+            do
+                arg=${'$i'[$j]}
+                printf -- "%q " "$arg"
+                if test '$i' = to;then
+                    printf -- " "
+                fi
+            done
+        else
+            printf -- "%q" "${'$i'[$j]}"
+        fi
+    fi
+    '
+done
+     printf "<<ltan123456natl654321foe\n"
+     echo "$emailMessage"
+     echo "ltan123456natl654321foe"
+) | bash $(if test "a" = "b";then echo "aa"; fi)
+
+echo "email sending..."
+

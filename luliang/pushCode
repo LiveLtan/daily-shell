@@ -1,0 +1,34 @@
+#!/bin/bash
+# push code to gerrit
+export PATH
+REVIEWER=""
+BRANCH=`git br | head -2 | awk -F "[()]" '{print $2}' | cut -d ' ' -f 4`
+if [[ ${BRANCH} != *"smartisan"* ]];then
+	#main branch
+             BRANCH=`git branch --remote | head -1 | cut -d ' ' -f 5`
+fi
+if [[ ${BRANCH} =~ "dc" ]]; then
+        REVIEWER="luliang zhangyue"
+elif [[ ${BRANCH} =~ "mol" ]]; then
+    if [[ ${BRANCH} =~ "osborn-rom" ]]; then
+        REVIEWER="luliang zengjinlong zhangyue lizhe zhengziyou"
+    else
+        REVIEWER="luliang zhengziyou lilin lizhe zhangyue"
+    fi
+fi
+
+if [[ ${BRANCH} =~ "eng" ]]; then
+    REVIEWER="zhengziyou"
+fi
+
+BRANCH=`echo $BRANCH | cut -d '/' -f 2- `
+
+#gerrit-push-review -R -b mol/odin-rom-3.7.0 chenxin zhouchao litianyu
+while true; do
+    read -p "$ gerrit-push-review -R -b $BRANCH $REVIEWER ? " yn
+    case $yn in
+        [Yy]* ) gerrit-push-review -R -b $BRANCH $REVIEWER; break;;
+        [Nn]* ) exit;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done

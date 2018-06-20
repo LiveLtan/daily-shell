@@ -1,0 +1,8 @@
+#!/bin/bash
+echo
+host_git='/usr/bin/git'
+if test $1 = "r";then
+    git br -a | grep ">"
+else
+    git $@
+fi

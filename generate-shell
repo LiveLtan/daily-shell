@@ -1,0 +1,12 @@
+#!/bin/bash
+shellRoot='/home/ltan/bin/'
+shellFile=$1
+
+if test "$shellFile" = "";then
+    read -p "please in put a file name." shellFile
+fi
+
+cd $shellRoot
+touch $shellFile
+echo '#!/bin/bash' > $shellFile
+chmod a+x $shellFile

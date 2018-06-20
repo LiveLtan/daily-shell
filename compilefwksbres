@@ -1,0 +1,20 @@
+#!/bin/bash
+oldDir=`pwd`
+
+adb='/home/ltan/system-config/bin/my-adb'
+kill_build='/home/ltan/bin/kill_android_build'
+
+. sr
+mmm frameworks/smartisanos-base/core/res
+
+if test $? -eq 0;then
+    $adb push \
+    out/target/product/trident/system/framework/framework-smartisanos-res/framework-smartisanos-res.apk \
+    /system/framework/framework-smartisanos-res/framework-smartisanos-res.apk
+    $adb reboot;
+    $kill_build
+else
+    echo "smarisanos-base compile failed!"
+fi
+
+cd $oldDir

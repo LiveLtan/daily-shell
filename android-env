@@ -1,0 +1,28 @@
+#!/bin/bash
+
+set -e
+build_env=$(lookup-file -e build/envsetup.sh || true)
+if test -z "$build_env"; then
+    die "无法找到 build/envsetup.sh 文件，不是安卓代码目录？"
+fi
+top_dir=`dirname $build_env`
+top_dir=`readlink -f $top_dir/..`
+
+oldpwd=$PWD
+
+cd $top_dir || exit
+
+. build/envsetup.sh >/dev/null 2>&1
+
+if test ! -e buildspec.mk -a -z "$TARGET_PRODUCT"; then
+    hint "你未曾设置过安卓编译配置，现在为你设置"
+    android-set-product
+fi
+
+if test -z "$TARGET_PRODUCT"; then
+    lunch $(cat buildspec.mk|grep TARGET_PRODUCT|pn 2 =)-$(cat buildspec.mk|grep TARGET_BUILD_VARIANT|pn 2 =) >/dev/null 2>&1
+fi
+
+cd "$oldpwd"
+
+# m mm mmm mma mmma cgrep ggrep jgrep resgrep sgrep

@@ -1,0 +1,20 @@
+#!/bin/bash
+java_HOME='/usr/lib/jvm/java-8-openjdk-amd64'
+case $1 in
+    6)
+ export java_HOME=/usr/lib/jvm/java-6-oracle
+     echo "666"
+ ;;
+    7)
+ export java_HOME=/usr/lib/jvm/java-7-openjdk-amd64
+     echo "777"
+ ;;
+    *)
+ export java_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+     echo "888"
+ ;;
+esac
+
+export JAVA_HOME=$java_HOME
+export PATH=$JAVA_HOME/bin:$JAVA_HOME/jre/bin:$PATH
+export CLASS_PATH=.:$JAVA_HOME/lib/tools.jar:$JAVA_HOME/lib/dt.jar

@@ -1,0 +1,8 @@
+#!/bin/bash
+ret=`ps -A | grep -i "IntelliJIDEALic" | wc -l`
+echo -e "idea running?"$ret"\n"
+if [ $ret -eq 0 ];then
+    echo "starting"
+    /data/env/IntelliJIDEALicenseServer_linux_386 1> /dev/null 2>&1 &
+fi
+echo -e "idea running...\n"

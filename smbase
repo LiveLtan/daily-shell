@@ -1,0 +1,25 @@
+#!/bin/bash
+
+codeSync='mrepo'
+project=""
+
+case "$1" in
+    "osborn")
+    project='/home/ltan/src/android-osborn-dev/'
+    break;
+    ;;
+    "odin")
+    project='/home/ltan/src/android-odin-dev/'
+    break;
+    ;;
+    "surabaya")
+    project='/home/ltan/src/android-surabaya-dev/'
+    break;
+    ;;
+    "trident")
+    project='/home/ltan/src/android-tridend-dev/'
+    break;
+    ;;
+esac
+mrepo sync $project"frameworks/smartisanos-base"
+

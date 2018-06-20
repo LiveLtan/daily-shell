@@ -1,0 +1,13 @@
+#!/bin/bash
+true_repo='/home/ltan/system-config/bin/overide/repo'
+
+if test "$1" = "sync";then
+    if test "$2" = "" -o "$2" = ".";then
+        $true_repo sync -c -d -j4 .;
+    else
+        shift;
+        $true_repo sync $@;
+    fi
+else
+    $true_repo $1 $2 $3 $4 $5;
+fi

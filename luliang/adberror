@@ -1,0 +1,3 @@
+#! /bin/bash
+export PATH
+adb logcat | grep -A 30 'AndroidRuntime' | grep -v 'NewLauncher'

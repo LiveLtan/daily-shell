@@ -1,0 +1,81 @@
+#!/bin/bash
+
+codeSync='mrepo'
+project="$1"
+projectName="$1"
+
+oldDir=`pwd`
+echo "execute dir ------ :"$oldDir
+case "$1" in
+    osborn)
+    project='/home/ltan/src/android-osborn-dev/'
+    ;;
+    odin)
+    project='/home/ltan/src/android-odin-dev/'
+    ;;
+    surabaya)
+    project='/home/ltan/src/android-surabaya-dev/'
+    ;;
+    trident)
+    project='/home/ltan/src/android-tridend-dev/'
+    ;;
+esac
+
+## repo the common
+cd $project"packages/apps/IdeaPillsCommon/"
+git fetch smartisanos
+mrepo sync
+
+cd "$project"
+echo "now dir"`pwd`
+
+mmm_result_check() {
+    theResult=$1;
+    echo $theResult > /tmp/.tmpandroidmake.txt;
+    cat /tmp/.tmpandroidmake.txt | tail -20 | grep "need"
+}
+
+## make the idea pills common
+mmm packages/apps/IdeaPillsCommon/ > /dev/null 2>&1;
+if [ $? -gt 0 ];then
+    read -p "Some error happen, do you want to mma VoiceAssistant ? " yn
+    case $yn in
+        [Nn]* )
+        echo "Just exit."
+    ;;
+        [Yy]*|* )
+        mmma packages/apps/IdeaPillsCommon/
+    ;;
+    esac
+fi
+
+# make the target
+#cd "packages/apps/VoiceAssistant/"
+#git fetch smartisanos
+#mrepo sync
+mmm packages/apps/VoiceAssistant/
+if [ $? -gt 0 ];then
+    read -p "Some error happen, do you want to mma VoiceAssistant ? " yn
+    case $yn in
+        [Nn]* )
+        echo "Just exit."
+    ;;
+        [Yy]*|* )
+        mmma packages/apps/VoiceAssistant/
+    ;;
+    esac
+fi
+
+if test "$1" = "";then
+    cd $oldDir
+    exit;
+fi
+shift;
+if test "$1" = "start";then
+    cd "$project";
+    adb push out/target/product/"$projectName"/system/priv-app/VoiceAssistant/ /system/priv-app/;adb shell killall com.smartisanos.sara;
+    adb shell killall com.android.settings;
+    adb shell am start -n com.android.settings/.Settings
+fi
+cd $oldDir;
+exit

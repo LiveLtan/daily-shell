@@ -1,0 +1,70 @@
+#!/bin/bash
+
+oldDir=`pwd`
+tvar='ocean trinity trident oscar osborn odin surabaya t2'
+result=$(echo $oldDir | grep "odin")
+#if [[ $oldDir == *$tvar* ]];then
+#if [[ $oldDir =~ "odin" ]];then
+if [[ "$result" != "" ]];then
+    echo "find you!"
+fi
+
+targetSrcRoot=
+pathFond=-1
+
+for i in $tvar
+do
+    if [[ $oldDir == *$i* ]];then
+        targetSrcRoot=$i;
+        let pathFond=1
+        break;
+    fi
+done
+
+if [ $pathFond -ge 1 ];then
+
+echo "pwd="$oldDir"---$targetSrcRoot"
+
+product_type=''
+case $targetSrcRoot in
+    osborn)
+    project='/home/ltan/src/android-osborn-dev/'
+    product_type='osborn-userdebug'
+    ;;
+    odin)
+    project='/home/ltan/src/android-odin-dev/'
+    product_type='odin-userdebug'
+    ;;
+    surabaya)
+    project='/home/ltan/src/android-surabaya-dev/'
+    product_type='surabaya-userdebug'
+    ;;
+    trident)
+    project='/home/ltan/src/android-trident-dev/'
+    product_type='trident-userdebug'
+    ;;
+    trinity)
+    project='/home/ltan/src/android-trident-trinity/'
+    product_type='trident-userdebug'
+    ;;
+    ocean)
+    project='/home/ltan/src/android-ocean-dev/'
+    product_type='ocean-userdebug'
+    ;;
+    t2)
+    project='/home/ltan/src/android-t2-dev/'
+    product_type='icesky_msm8992-userdebug'
+    ;;
+    oscar)
+    project='/home/ltan/src/android-oscar-dev/'
+    product_type='oscar-userdebug'
+    ;;
+    *)
+    echo "please in put a validate project name..."
+    product_type='odin-userdebug'
+    exit 2;
+    ;;
+esac
+cd $project
+
+fi

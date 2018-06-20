@@ -1,0 +1,10 @@
+#!/bin/bash
+
+export DISPLAY=:0.0
+mnotify='/usr/bin/notify-send'
+znity='/usr/bin/zenity'
+
+#$zenity --info --text "要发送的消息"
+#level low normal critical
+#$mnotify -u low -t 1 "Patch 检查" "并记录本次检查的日期等信息"
+$mnotify -u critical -t 1 "Patch 检查" "并记录本次检查的日期等信息"

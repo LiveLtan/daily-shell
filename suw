@@ -1,0 +1,22 @@
+#!/bin/bash
+
+#mmm packages/apps/SetupWizard;madb push out/target/product/osborn/system/app/SetupWizard/ /system/app/; madb k 'com.smartisanos.setupwizard';
+
+adb="/home/ltan/system-config/bin/my-adb"
+if test "$1" = "start";then
+    $adb mount;
+    $adb settings put secure user_setup_complete 0;
+    $adb settings put global device_provisioned  0;
+    $adb shell pm enable com.smartisanos.setupwizard/.SetupWizardActivity;
+    $adb shell am start -n com.smartisanos.setupwizard/.SetupWizardActivity
+elif test "$1" = "end";then
+    $adb settings put secure user_setup_complete 1;
+    $adb settings put global device_provisioned  1;
+    $adb shell am start -n com.smartisanos.setupwizard/.SetupWizardCompleteActivity
+elif test "$1" = "skip";then
+    $adb shell am start -n com.smartisanos.setupwizard/.PhoneDataTransferWizardActivity
+else
+    echo "Option:"
+    echo -e "      start\nskip\nend"
+fi
+exit

@@ -1,0 +1,148 @@
+#!/bin/bash
+#"$the_mailx $send_as -Ssmtp-auth=login -S from=$($getme mail) $STARTTLS -S smtp=$scheme$($getme smtp):$($getme smtp-port) 
+#-S smtp-auth-user=$($getme mail) -S smtp-auth-password=%q " "$auth"
+
+Usage() {
+
+    echo -e "\n\t-a:\t add attachment"
+    echo -e "\t-t:\t point receivers"
+    echo -e "\t-c:\t point cc receivers"
+    echo -e "\t-bc:\t point bcc receivers"
+    exit "$@"
+}
+
+function die() {
+    echo Error: "$@"
+    echo
+    Usage 1
+}
+
+function check_arg() {
+    if [[ -z "$1" ]];then
+        Usage 1;
+    fi
+    arg='-'
+    if [[ "$1" = "$arg"* ]];then
+        die 'error message start with -'$1
+    fi
+}
+
+function printArray() {
+    array=$1
+    eval echo "All field of array \'$array\' are:"'${'$array'[@]}'
+
+    #eval length='${#'$array'[@]}'
+    #let length=length-1
+    #for i in `seq 0 $length`
+    #do
+    #    eval echo item $i is:'${'$array'['$i']}'
+    #done
+}
+
+function readAttach() {
+    targetLink=$1
+    array='attachments'
+    #eval attachments='(${'$array[@]} $(readlink -m '$targetLink'))'
+    eval $array='(${'$array'[@]} $(readlink -e '$targetLink'))'
+    return 0;
+}
+
+mailArgsBuilder=''
+params=$@
+echo "params"$@
+#array to[] cc[] bcc[] attachments[]
+attachArrayName='attachments'
+rec_type=to
+while true; do
+    case $1 in
+        [^-]*)
+            if [ $rec_type = "$attachArrayName" ];then
+                readAttach "$1"
+            else
+                eval $rec_type='("${'$rec_type'[@]}" "$1")'
+            fi
+            shift 1
+        ;;
+        -t)
+            check_arg "$2"
+            rec_type=to
+            shift
+        ;;
+        -c)
+            check_arg "$2"
+            rec_type=cc
+            shift
+        ;;
+        -b)
+            check_arg "$2"
+            rec_type=bcc
+            shift 1
+        ;;
+        -s)
+            check_arg "$2"
+            mailArgsBuilder="$mailArgsBuilder -s $2"
+            shift 2
+        ;;
+        -m)
+            check_arg "$2"
+            #mailArgsBuilder="$mailArgsBuilder -m '$2'"
+            emailMessage="$2"
+            shift 2
+        ;;
+        -a)
+            check_arg "$2"
+            rec_type=$attachArrayName
+            shift 1
+        ;;
+        -*)
+            die "unknown option"$1
+        ;;
+        *)
+        break;
+        ;;
+    esac
+done
+
+for i in cc bcc attachments to
+do
+    echo "i = $i"
+    eval '
+    if test ${#'$i'[@]} != 0;then
+        let length=${#'$i'[@]}-1
+        type=""
+        case $i in
+                cc)
+                    type="-c"
+                ;;
+                bcc)
+                    type="-b"
+                ;;
+        esac
+        if test $i = "attachments";then
+            echo "attach got you, length="$length
+            for j in $(seq 0 $length)
+            do
+                echo ${'$i'[$j]}
+                attach="-a ${'$i'[$j]}"
+                mailArgsBuilder="$mailArgsBuilder $attach"
+            done
+        else
+            mailArgsBuilder="$mailArgsBuilder $type"
+            for j in $(seq 0 $length)
+            do
+                echo ${'$i'[$j]}
+                arg=${'$i'[$j]}
+                mailArgsBuilder="$mailArgsBuilder $arg"
+            done
+        fi
+    fi
+    '
+done
+
+echo "mailArgsBuilder=$mailArgsBuilder"
+echo "email message:"$emailMessage
+echo $emailMessage | /usr/bin/mail $mailArgsBuilder
+
+#printf " << '31a1b9affa4ee4c6520ac20bb7c16f69'\n"
+#     echo "$body"
+#     echo "31a1b9affa4ee4c6520ac20bb7c16f69"

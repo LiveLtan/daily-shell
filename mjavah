@@ -1,0 +1,54 @@
+#!/bin/bash
+
+logFile='/tmp/.javah.log'
+echo "p1=$1;p2=$2;p3=$3;p4=$4;p5=$5" > $logFile
+
+filePath=$1;
+fileName=$2;
+className=$3;
+
+
+##"got alproject root!"
+allRoot=${filePath%%apps*}
+allRoot2=${filePath##*apps}
+echo "all root:"$allRoot  >> $logFile
+echo "all root2:"$allRoot2 >> $logFile
+
+#if [ "$allRoot2" = ""]
+tmpVar=${allRoot2%%src*}
+if test "$tmpVar" = "$allRoot2"; then
+    tmpVar=${allRoot2%%java*}
+    if test "$tmpVar" = "$allRoot2";then
+        echo "Error: your patch do not have a java or src dir, please check it!"
+        exit
+    fi
+    src='java'
+else
+    src='src'
+fi
+
+
+moudlePath=$allRoot'apps'${allRoot2%%$src*}
+packageNameTmp=${allRoot2##*$src/}
+echo "all moudlePath:"$moudlePath >> $logFile
+echo "all packageNameTmp:"$packageNameTmp >> $logFile
+packageName=${packageNameTmp//\//.}
+echo "all packageName.:"$packageName >> $logFile
+
+srcDir=$moudlePath"$src"'/'
+jniDir=$moudlePath'jni/'
+
+target=$srcDir$packageNameTmp/$fileName;
+echo "target = "$target >> $logFile
+## create class file
+javac $target
+echo "className = "$className  >> $logFile
+
+## create the header file of your java file selected.
+cd $srcDir;javah -cp . -d $jniDir -jni $className
+
+## delete the tmp class file.
+rm $packageNameTmp/*.class
+echo "javah work done!" >> $logFile
+echo "javah work done!"
+exit

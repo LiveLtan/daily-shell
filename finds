@@ -1,0 +1,16 @@
+#!/bin/bash
+
+if test $# -ge 2;then
+    curDir="$1"
+    shift
+fi
+searchStr=("$1")
+if test "$searchStr" = ""; then
+    echo "the search string is empty!"
+    read -p "the search string is empty ?" searchStr
+fi
+if test "$searchStr" = ""; then
+    exit;
+fi
+
+exec find $curDir | xargs grep -ins "$searchStr" | grep "$searchStr" --color

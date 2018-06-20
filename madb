@@ -1,0 +1,201 @@
+#!/bin/bash
+adb='/data/env/android-sdk/platform-tools/adb'
+system_cfg_adb='/home/ltan/system-config/bin/my-adb'
+tmp_dir='/tmp'
+tmp_dev=$tmp_dir'/.lastDevNum'
+usb_phones=`$adb devices | grep -w "device" | awk '{print $1}' | wc -l`
+one_dev=`$adb devices | grep -w "device" | awk '{print $1}'`
+
+#echo "you have "$usb_phones" devices"
+
+getLastSeria() {
+    $adb devices > $tmp_dev;
+}
+
+adb_mount() {
+    $adb -s $dev_serial root;
+    $adb -s $dev_serial remount;
+}
+
+kall() {
+    package_name=$1
+    process_ids='$tmp_dir/process_ids.tmp'
+    $adb shell ps | grep "$1" > $process_ids
+    process_id=0
+    $adb shell kill $process_id;
+}
+
+topActivity() {
+    $adb -s $dev_serial shell dumpsys activity activities | grep "Run";
+}
+
+topfrg() {
+    $adb -s $dev_serial shell dumpsys window windows | grep "current";
+}
+
+
+readSerial() {
+    if test "$usb_phones" = "1";then
+        dev_serial=`$adb devices | grep -w "device" | awk '{print $1}'`
+        return 1;
+    fi
+    # 1; no value at -1, -1 = 255, -2 = 254
+    if test -f $tmp_dev; then
+        dev_serial=`cat $tmp_dev`
+        return 1;
+    fi
+    return 0;
+}
+
+inputSerial() {
+    if test $usb_phones -gt 1; then
+        exec $adb devices | grep -w "device" | awk '{print $1}' > $tmp_dir/.tmpnum
+        let inc_i=0
+        cat $tmp_dir/.tmpnum | while read line
+        do
+            #let inc_i+=1
+            #let inc_i++
+            #((inc_i++))
+            inc_i=$(($inc_i+1))
+            echo -e "$inc_i) \033[32m${line}\033[0m"
+        done
+        read -p "which one you want ?" dev_serial
+        rm -f $tmp_dir/.tmpnum
+    fi
+    if test -z $dev_serial;then
+        echo -e "\033[31mdevice serial is empty!\033[0m"
+        exit
+    fi
+}
+
+kill() {
+    if test "$1" = "";then
+        echo -e "\033[31mError:\033[0m Your process is invalid! Please input a process name"
+        return 0;
+    fi
+    if test "$1" = "setting" -o "$1" = "settings";then
+        $system_cfg_adb -s $dev_serial 'killall' 'com.android.settings'
+    elif test "$1" = "sw" -o "$1" = "suw" -o "$1" = "setup" -o "$1" = "setupwizard";then
+        $system_cfg_adb -s $dev_serial 'killall' 'com.smartisanos.setupwizard'
+    fi
+}
+
+myKill() {
+    process_name='com.android.settings'
+    process_id=`adb shell ps | grep "$process_name" | awk '{print $2}'`
+    echo "process_id is: $process_id"
+}
+
+paramError() {
+    echo -e "\033[31m Your param is wrong!\033[0m"
+}
+getSettingGlobal() {
+    if test "$1" = "";then
+        paramError;
+        return -1;
+    fi
+    global_key=$1
+    $adb -s $dev_serial shell exec settings get global $global_key
+}
+getSettingSystem() {
+    if test "$1" = "";then
+        paramError;
+        return -1;
+    fi
+    system_key=$1
+    $adb -s $dev_serial shell exec settings get system $global_key
+}
+getSettingSecure() {
+    if test "$1" = "";then
+        paramError;
+        return -1;
+    fi
+    secure_key=$1
+    $adb -s $dev_serial shell exec settings get secure $secure_key
+}
+debugSettings() {
+    $adb -s $dev_serial logcat | grep "BaseFragment" --color
+}
+
+work() {
+## save the input device serial number!
+echo $dev_serial > $tmp_dev
+
+#"\033[31mdd\033[0m"
+###############################
+#
+# now device number will be set.
+#
+###############################
+
+    if test "$1" = "push";then
+        adb_mount;
+        $adb -s $dev_serial $1 $2 $3 $4 $5 $6;
+        exit
+    elif test "$1" = "top" -o "$1" = "topa" -o "$1" = "topaci" ;then
+        topActivity;
+        exit
+    elif test "$1" = "topfrg";then
+        toprg
+        exit
+    elif test "$1" = "setting";then
+        debugSettings;
+    elif test "$1" = "k" -o "$1" = "kill";then
+        kill $2 $3 $4
+        #myKill $2 $3
+        exit
+    elif test "$1" = "getglo";then
+        getSettingGlobal $2 $3 $4
+        exit
+    elif test "$1" = "getsys";then
+        getSettingSystem $2 $3 $4
+        exit
+    elif test "$1" = "getsec";then
+        exit
+    elif test "$1" = "runtime" -o "$1" = "run";then
+        $adb -s $dev_serial logcat | grep "AndroidRuntime" --color
+        exit
+    elif test "$1" = "logcat" -o "$1" = "log";then
+        if test "$2" = "-c";then
+            $adb -s $dev_serial logcat -c;clear;
+            exit;
+        elif [ -n "$2" ];then
+            $adb -s $dev_serial logcat | grep -i "$2" --color;            
+        fi
+    elif test "$1" = "dbg" -o "$1" = "debug";then
+        $adb -s $dev_serial logcat | grep -i "$2" --color;
+    fi
+    $system_cfg_adb -s $dev_serial $1 $2 $3 $4 $5 $6 $7 $8 $9 ${10} ${11}
+}
+
+if test "$1" = "";then
+    $adb devices
+    exit;
+fi
+
+if test "$1" = "-s" -a ! "$2" = "";then
+    echo "serial is ok, param 1=$1"
+    dev_serial=$2
+    # remove the ' -s serial'
+    shift;shift
+fi
+
+if test ! "$1" = "-s";then
+    if test "$usb_phones" = "1"; then
+        dev_serial=$one_dev
+        work $1 $2 $3 $4 $5 $6 $7 $8 $9 ${10} ${11};
+        exit
+    fi
+    readSerial;
+    if test $? -eq 0; then
+        echo "last device serial is invalid"
+        inputSerial;
+    fi
+fi
+
+if test -z $dev_serial;then
+    echo -e "\033[31mYour devices seiral is empty!\033[0m"
+    exit;
+fi
+work $1 $2 $3 $4 $5 $6 $7 $8 $9 ${10} ${11};
+exit

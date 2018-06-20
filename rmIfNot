@@ -1,0 +1,64 @@
+#!/bin/bash
+
+oldDir=`pwd`
+theTmpFile='/tmp/.rm.tmp.txt'
+theTargetFile=$1
+
+let theTargetFilesCount=0
+
+isCurrentFile() {
+    baseName=`basename $1`
+    if test "$theTargetFile" = $baseName;then
+        return 0;
+    else
+        return 1;
+    fi
+}
+
+readFiles() {
+    local curDir=$1
+    local files=`ls $curDir`;
+    if test "$curDir" = "aaa";then
+        echo -e "files in aaa folder:"$curDir
+    fi
+    for file in $files
+    do
+        currentFile="$curDir/$file"
+        if [ -d $currentFile ];then
+            readFiles $curDir/$file
+        elif [ -f $currentFile ];then
+            isCurrentFile $currentFile;
+            if [ $? -eq 0 ];then
+                echo -e "Keep a file at "$currentFile
+                let theTargetFilesCount=$theTargetFilesCount+1
+            else
+                echo "$currentFile" >> $theTmpFile
+            fi
+        else
+            echo -e "\ncould not be here!!"$file
+        fi
+    done
+    return 0;
+}
+
+rmFiles() {
+    theFiles=$1
+    for i in `cat $theFiles`
+    do
+        rm $i
+    done
+}
+
+readFiles .
+rmFiles $theTmpFile
+
+
+#if [ $theTargetFilesCount -eq 1 ];then
+#    echo "will remove the file"$theTargetFile
+#    #rmFiles $theTmpFile
+#else
+#    echo -e "\nThere have "$theTargetFilesCount" files in this folder and it's childern\nI can not remove it, please check it again";
+#fi
+
+rm $theTmpFile
+echo "rm file done!"

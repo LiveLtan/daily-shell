@@ -1,0 +1,10 @@
+#!/bin/bash
+adb='/home/ltan/system-config/bin/my-adb'
+
+mmm frameworks/base/services/core/;
+mmm frameworks/base/; 
+
+$adb push out/target/product/osborn/system/framework/framework-res.apk /system/framework/framework-res.apk;
+$adb push out/target/product/osborn/system/framework/framework.jar /system/framework/framework.jar;
+
+$adb shell rm -rf '/system/framework/arm/*'; $adb shell rm -rf '/system/framework/arm64/*';

@@ -1,0 +1,84 @@
+#!/bin/bash
+
+now=`date "+%Y%m%d-%H%M%S"`
+home_work='/home/ltan/bin/home-work'
+home_work_log='/tmp/.home_work.txt'
+email='/home/ltan/bin/my_email'
+androidStudio='. /home/ltan/bin/kill_android_studio'
+androidBuild='. /home/ltan/bin/kill_android_build'
+#mail='. /home/ltan/bin/mailtoqq'
+
+#kill android studio
+$androidStudio
+#kill android build process
+$androidBuild
+
+echo "now work for surabaya" `date`;
+$home_work -p surabaya -t setting -o make -d $now;
+$androidBuild
+
+echo "now work for t2" `date`;
+$home_work -p t2 -t setting -o make -d $now;
+$androidBuild
+
+# odin deleted....
+#echo "now work for odin" `date`;
+#$home_work -p odin -t setting -d $now;
+#$androidBuild
+
+echo "now work for trident" `date`;
+$home_work -p trident -t setting -o make -d $now;
+$androidBuild
+
+echo "now work for trinity" `date`;
+$home_work -p trinity -t setting -o make -d $now;
+$androidBuild
+
+echo "now work for oscar" `date`;
+$home_work -p oscar -t setting -o make -d $now;
+$androidBuild
+
+echo "now work for osborn" `date`;
+$home_work -p osborn -t setting -o make -d $now;
+$androidBuild
+
+echo "now work for ocean" `date`;
+$home_work -p ocean -t setting -o make -d $now;
+$androidBuild
+
+# mail by bhj
+#$mail -s "home work done, starting time is $now" '/tmp/.home_work.txt'
+
+
+## use the heirloom-mailx
+#cat '/tmp/.home_work.txt' | mail -s "home work done, starting time is $now"
+
+
+# customize send way!
+touch $home_work_log
+message=`cat $home_work_log`
+if [[ -z "$message" ]];then
+    message='empty message, check it!'
+fi
+subject='Home work done, starting time is '$now
+
+# recored the log attachments
+attach=`echo "$message" | grep "working logs:"|cut -d ':' -f2`
+for i in $attach
+do
+    echo "attach will be:"$i
+done
+
+$email -m "$message" -s "$subject" \
+-t 290754291@qq.com \
+-c tanlin@smartisan.com \
+-b tl_friend@163.com \
+-a "$attach"
+
+# clear
+#rm $home_work_log
+cat /dev/null > $home_work_log
+
+#. /home/ltan/bin/kill_android_build
+exit 0;
+

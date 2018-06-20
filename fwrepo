@@ -1,0 +1,96 @@
+#!/bin/bash
+
+
+if [ "$2" = "" -a "$1" = "" ]; then
+echo ' 
+Useage:
+
+fwrepo <project> <module>
+
+<project> : odin|osborn|t2,                 please use <table><table>
+<moudle>  : ex|smbase, default is fw/base.  please use <table><table>';
+exit 0;
+
+fi
+
+codeSync='mrepo'
+project=""
+
+oldDir=`pwd`
+echo "execute dir ------ :"$oldDir
+case "$1" in
+    osborn)
+    project='/home/ltan/src/android-osborn-dev/'
+    ;;
+    odin)
+    project='/home/ltan/src/android-odin-dev/'
+    ;;
+    surabaya)
+    project='/home/ltan/src/android-surabaya-dev/'
+    ;;
+    trident)
+    project='/home/ltan/src/android-trident-dev/'
+    ;;
+    oscar)
+    project='/home/ltan/src/android-oscar-dev/'
+    ;;
+    t2)
+    project='/home/ltan/src/android-t2-dev/'
+    ;;
+    *)
+    ;;
+esac
+
+case $2 in
+    ex)
+        targetDir="frameworks/base-ex"
+    ;;
+    smbase)
+        targetDir="frameworks/smartisanos-base"
+    ;;
+    *)
+        targetDir="frameworks/base"
+    ;;
+esac
+
+cd $project$targetDir
+echo "target  dir ------ :"`pwd`
+
+mrepo sync
+
+cd $oldDir
+echo "nowDir ------ :"`pwd`
+
+buildTarget() {
+    cd $project;
+    module=$1
+    prefix=`echo $module | cut -d '/' -f2`
+    case $prefix in
+        base)
+        echo "making the "$1/core/res/" & $module"
+        mmm $module/core/res/;
+        mmm $module;
+        ;;
+        base-ex)
+        echo "making the $1"
+        mmm $module
+        ;;
+        smartisanos-base)
+        echo "making the "$1/core/res/" & $module"
+        mmm $module/core/res/;
+        mmm $module;
+        ;;
+    esac
+    return 0;
+}
+
+# build the current module
+read -p "Do you want to make $targetDir ? " yn
+case $yn in
+    [Nn]* )
+    echo "Just exit."
+    ;;
+    [Yy]*|* )
+    buildTarget $targetDir
+    ;;
+esac

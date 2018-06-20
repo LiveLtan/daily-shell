@@ -1,0 +1,6 @@
+#!/bin/bash
+mmm frameworks/base/core/res/;
+mmm frameworks/base/services/core/;
+mmm frameworks/base/;
+
+mmm frameworks/base-ex/;

@@ -1,0 +1,7 @@
+#!/bin/bash
+echo "killing android build process..."
+buildProcess=`ps -Alf | grep "MaxJavaStack" | grep "java" | awk '{print $4}'`
+if test ! $buildProcess = "";then
+    kill $buildProcess
+    echo "android build process stopped"
+fi

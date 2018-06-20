@@ -1,0 +1,3 @@
+#!/bin/bash
+adb="/home/ltan/system-config/bin/my-adb"
+$adb shell am start -n com.smartisanos.setupwizard/.PhoneDataTransferWizardActivity

@@ -1,0 +1,30 @@
+#!/bin/bash
+
+#lastLine=`tail -1 Android.mk`
+currentDir=`pwd`
+
+replace() {
+    include='include';
+    lastLine=`tail -1 $currentDir/Android.mk`
+    lastLineNumber=`cat -n $currentDir/Android.mk | grep "call all-makefiles-under" | awk '{print $1}'`
+    if test "$1" = "simple";then
+        if [[ $lastLine == $include* ]];then
+            sed -i "$lastLineNumber"'s/include/#include/g' $currentDir/Android.mk
+        fi
+        echo "You can compile only this directory!"
+    elif test "$1" = "all";then
+        include="#"$include
+        if [[ $lastLine == $include* ]];then
+            sed -i "$lastLineNumber"'s/#include/include/g' $currentDir/Android.mk
+        fi
+        echo "You will compile this directory and under folder moude!"
+    fi
+}
+if test "$1" = "" -o "$1" = ".";then
+    replace "simple"
+elif test "$1" = "a" -o "$1" = "all";then
+    replace "all"
+else
+    echo "Your params is wrong:"$1
+fi
+

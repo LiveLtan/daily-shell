@@ -1,0 +1,53 @@
+#!/bin/bash
+
+oldDir=`pwd`
+#tvar='trident oscar osborn odin surabaya t2'
+tvar='frameworks/base  frameworks/base-ex  frameworks/smartisanos-base SettingsSmartisan Backup SmartisanosSamples SetupWizard'
+result=$(echo $oldDir | grep "odin")
+#if [[ $oldDir == *$tvar* ]];then
+#if [[ $oldDir =~ "odin" ]];then
+if [[ "$result" != "" ]];then
+    echo "find you!"
+fi
+
+targetSrcRoot=
+pathFond=-1
+
+for i in $tvar
+do
+    if [[ $oldDir == *$i* ]];then
+        targetSrcRoot=$i;
+        let pathFond=1
+        break;
+    fi
+done
+
+echo "targetSrcRoot:"$targetSrcRoot
+
+if [ $pathFond -ge 1 ];then
+
+echo "pwd="$oldDir"---$targetSrcRoot"
+
+case $targetSrcRoot in
+    frameworks/base)
+        git fetch smartisan --depth=1
+        mrepo sync
+    ;;
+    frameworks/base-ex)
+        git fetch smartisanos --depth=1
+        mrepo sync
+    ;;
+    frameworks/smartisanos-base)
+        git fetch smartisanos --depth=1
+        mrepo sync
+    ;;
+    SettingsSmartisan|SmartisanosSamples|Backup|SetupWizard)
+        git fetch smartisanos --depth=1
+        mrepo sync
+    ;;
+    *)
+    break
+    ;;
+esac
+
+fi

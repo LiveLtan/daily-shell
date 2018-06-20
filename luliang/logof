@@ -1,0 +1,3 @@
+#!/bin/bash
+export PATH
+adb logcat | grep -F "`adb shell ps | grep $1 | cut -c10-15`"

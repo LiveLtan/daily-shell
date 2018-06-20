@@ -1,0 +1,127 @@
+#!/bin/bash
+#who='/home/'`whoami`
+#lll=$who'/log-folder/'
+#cd $lll
+#ls
+#tmpLogFile='/tmp/.tmp.log'
+#now=`date "+%Y%m%d-%H%M%S"`
+
+olddir=`pwd`
+
+my_log() {
+    olddir=`pwd`
+    #cd $log_folder
+    echo "$1" >> log-test.$2.log;
+    #cd $olddir
+}
+
+writeLogByCommand() {
+    command=$@
+    $command 1>$tmpLogFile 2>&1;
+    ret=$?
+
+    varTmp=`cat $tmpLogFile`
+    my_log "$varTmp" $now
+    my_log "the command:$command return:"$ret $now
+    return $ret
+}
+
+record_gitlog() {
+    localPro=$1
+    remotePro=$2
+    # fetch
+    writeLogByCommand "git fetch $remotePro"
+    writeLogByCommand "mrepo sync"
+
+    ret=$?  
+    if [ $ret -gt 0 ];then
+        git df > $android_project$localPro"log-"$now.txt
+        error_log_files=$error_log_files'\n'$android_project$localPro"log-"$now.txt
+        git stash
+        git co .
+        writeLogByCommand "git stash list"
+        writeLogByCommand "mrepo sync"
+        ret=$?
+        my_log "$localPro mrepo sync again return="$ret
+    fi
+}
+
+#readLog "git fetch smartisanos"
+
+
+testFunction() {
+    cd '/home/ltan/src/android-odin-dev/'
+    . sz
+    #resCount=`git st | grep -E "res" | wc -l`
+    branch=`git branch|grep '*'`
+    echo "branch="$branch
+    HEAD='*HEAD detach*'
+    if [[ $branch = $HEAD ]];then
+        if [[ "aa" =~ "a" ]];then
+            echo "you stand on HEAD"
+        fi
+    fi
+}
+
+isCurBranchHead() {
+    branch=`git branch | grep '*'`
+    oldBranch=$1
+    HEAD='*HEAD detach*'
+    if [[ $branch = $HEAD ]];then
+        if [[ $branch != $oldBranch ]];then
+            echo "The branch this moudle dir is:"$branch
+            return 0;
+        fi
+    fi
+    return 1;
+}
+
+#let resCount=0
+#let srcCount=1
+
+
+echo "pwd==="`pwd`
+#resCount=`git st | grep -E "res" | wc -l`
+#srcCount=`git st | grep -E "src" | wc -l`
+
+arrayName='to'
+to=(value0 value1 value2 value3)
+new='value100'
+
+#cd '/home/ltan/src/android-odin-dev/packages/apps/SettingsSmartisan'
+#isCurBranchHead
+#git status
+
+
+
+#testFunction;
+#-o $srcCount -gt 0 
+#if [ $resCount -gt 0 ];then
+#    echo "resCount:"$resCount'~~~~~'"srcCount:"$srcCount
+#fi
+
+getme='/home/ltan/system-config/bin/get-about-me'
+getauth='/home/ltan/system-config/bin/get-authinfo'
+#inputpop
+#auth=$(get-authinfo $(get-about-me smtp) $(get-about-me mail))
+#$(get-authinfo aa)
+
+#cd '/home/ltan/src/android-trident-dev/packages/apps/SettingsSmartisan/'
+#beforRepoBranch=`git branch | grep -E '\* '`
+#echo $beforRepoBranch
+#actuallyBranchIs=`echo "$beforRepoBranch" | cut -d ' ' -f2-`
+#echo -e "\n\necho branch is:$actuallyBranchIs"
+
+product_name='trident'
+cd '/home/ltan/log-folder/'
+ls -a log-$product_name-*
+fileCount=`ls -a log-$product_name-* | grep -v "053" | wc -l`
+if [ "$fileCount" -gt 0 ]; then
+    echo "got it: "$fileCount
+    #ls -a log-$product_name-* | grep -v "$now" | xargs rm -rf
+fi
+
+
+cd $olddir
+#rm .log.tmp
+#exit

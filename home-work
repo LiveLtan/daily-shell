@@ -1,0 +1,310 @@
+#!/bin/bash
+yourDir=`pwd`
+mrepo='/home/ltan/bin/mrepo'
+
+function die() {
+    echo Error: "$@"
+    echo
+    Usage 1
+}
+
+function check_arg()
+{
+    if [[ -z "$1" ]]
+    then
+        Usage 1;
+    fi
+}
+
+function Usage()
+{
+    echo "Usage: $prog_name [recipient]... OPTIONS"
+    echo
+    echo "Main Options:"
+    echo "    -d date:            what date time is"
+    echo "    -t target:          the module you want to make"
+    echo "    -p project:         which project you worked in"
+    echo "    -o option:          if you like MAKE directly"
+    exit "$@"
+}
+
+while true; do
+    case "$1" in
+        -d)
+            now=$2
+            shift 2;
+            ;;
+        -p)
+            product_name=$2
+            shift 2;
+            ;;
+        -o)
+            option=$2
+            shift 2;
+            ;;
+        -t|-T)
+            target=$2
+            shift 2;
+            ;;
+        -*)
+            die "unknown param $1"
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+product_type=''
+case "$product_name" in
+    t2|icesky)
+        project='/home/ltan/src/android-t2-dev/'
+        product_type='icesky_msm8992-userdebug'
+        ;;
+    m1|surabaya)
+        project='/home/ltan/src/android-surabaya-dev/'
+        product_type='surabaya-userdebug'
+        ;;
+    odin)
+        project='/home/ltan/src/android-odin-dev/'
+        product_type='odin-userdebug'
+        ;;
+    osborn)
+        project='/home/ltan/src/android-osborn-dev/'
+        product_type='osborn-userdebug'
+        ;;
+    trident)
+        project='/home/ltan/src/android-trident-dev/'
+        product_type='trident-userdebug'
+        ;;
+    trinity)
+        project='/home/ltan/src/android-trident-trinity/'
+        product_type='trident_tnt-userdebug'
+        ;;
+    oscar)
+        project='/home/ltan/src/android-oscar-dev/'
+        product_type='oscar-userdebug'
+        ;;
+    ocean)
+        project='/home/ltan/src/android-ocean-dev/'
+        product_type='ocean-userdebug'
+        ;;
+    *)
+        echo "please in put a validate project name..."
+        product_type='odin-userdebug'
+        exit 2;
+        ;;
+esac
+
+#echo "project=$project  target=$target   option=$option    time=$now"
+if test "$project" = "";then
+    die "please in put project name..."
+elif test -z "$now";then
+    now=`date "+%Y%m%d-%H%M%S"`
+fi
+#test "$target" = "";then
+#die "please in put target module name..."
+
+android_project=$project
+
+fwbase='frameworks/base'
+fwbase_ex='frameworks/base-ex'
+fwbase_smbase='frameworks/smartisanos-base'
+setting_project='packages/apps/SettingsSmartisan'
+setting_make='SettingsSmartisan'
+log_folder='/home/'`whoami`'/log-folder/'
+tmpLogFile='/tmp/.tmp.log'
+envSetup='build/envsetup.sh'
+
+#############################################
+##
+## Function declear
+##
+#############################################
+my_log() {
+    olddir=`pwd`
+    cd $log_folder
+    echo -e "$1" >> log-$product_name-$now.log;
+    cd $olddir
+}
+
+## command out put will saved into tmpLogFile
+writeLogByCommand() {
+    command=$@
+    $command 1>$tmpLogFile 2>&1;
+    ret=$?
+
+    varTmp=`cat $tmpLogFile`
+    my_log "$varTmp" $now
+    #my_log "\nthe command:$command AND return:"$ret $now
+
+    # clear it.
+    echo 'this is clear text.' > $tmpLogFile;
+    return $ret;
+}
+
+## running the git log
+record_gitlog() {
+    localPro=$1
+    remotePro=$2
+    currDir=`pwd`
+    cd $android_project$localPro
+    my_log "$localPro synchronizing..." $now
+    #handle SettingsSmartisan
+    isSetting=`echo $localPro | cut -d '/' -f3`
+    
+    if test "$isSetting" = "SettingsSmartisan";then
+       resCount=`git st | grep -E "res" | wc -l`
+       srcCount=`git st | grep -E "src" | wc -l`
+       beforRepoBranch=`git branch | grep '*'`
+       echo "the befor branch is:"$beforRepoBranch
+       if [ $resCount -gt 0 ];then
+            writeLogByCommand "git add res*"
+       fi
+       if [ $srcCount -gt 0 ];then
+            writeLogByCommand "git add src*"
+       fi
+       if [ $resCount -gt 0 -o $srcCount -gt 0 ];then
+           echo "res count:"$resCount", src count:"$srcCount
+           writeLogByCommand "git stash "
+           settingsCodeStashed='true'
+       fi
+    fi
+    
+    # fetching
+    writeLogByCommand "git fetch $remotePro --depth=1"
+    #writeLogByCommand "git fetch $remotePro"
+    writeLogByCommand ". $mrepo sync . "
+    ret=$?  
+    if [ $ret -gt 0 ];then
+        my_log "repo sync return GT 0, show the diff for localPro\n" $now
+        writeLogByCommand "git diff"
+        writeLogByCommand "git stash"
+        writeLogByCommand "git co ."
+        writeLogByCommand "git stash list"
+        writeLogByCommand ". $mrepo sync . "
+        ret=$?
+        my_log "$localPro mrepo sync again\nreturn="$ret $now
+    fi
+    cd $currDir
+    my_log "\nthe project synchronizing return:"$ret"\n" $now
+    return $ret;
+}
+## is branch changed
+isNeedCheckout() {
+    newBranch=("$1")
+    oldBranch=("$2")
+    HEAD='*HEAD detach*'
+    my_log '-----isNeedCheckout---\nnew branch:'"$newBranch"'\nold:'"$oldBranch"
+    if [[ $newBranch = $HEAD ]];then
+        if [[ $oldBranch = $HEAD ]];then
+            my_log "The branch is HEAD, donot checkout"$branch
+            return 1;
+        fi
+    fi
+    return 0;
+}
+
+cd $android_project
+## build the odin trident osborn oscar
+export USER=`whoami`
+echo -e "\n\tDoing home work $android_project ...\n"
+my_log "\n\tDoing home work $android_project ...\n" $now
+
+
+################################################
+#framework
+record_gitlog "$fwbase" "smartisan"
+record_gitlog "$fwbase_ex" "smartisanos"
+record_gitlog "$fwbase_smbase" "smartisanos"
+
+
+################################################
+#setting_project
+if [ ! -d "$setting_project" ];then
+    setting_project='packages/apps/Settings'
+    record_gitlog "$setting_project" "smartisan"
+fi
+
+if [ "$target" = "setting" ];then
+    record_gitlog "$setting_project" "smartisanos"
+fi
+
+
+###############################################
+##
+## confirm into the root dir!
+## build the settings moudle
+##
+###############################################
+cd $android_project
+writeLogByCommand ". $envSetup"
+writeLogByCommand "lunch $product_type"
+my_log "\n---------------------------------\nthe param product_type=$product_type\n" $now
+if test "$option" = "make";then
+    my_log "makeing by option make, ing...." $now
+    writeLogByCommand "make $setting_make -j8"
+else
+    writeLogByCommand "mmm $setting_project"
+    if [ $? -gt 0 ];then
+        my_log "mmm failed, will make :$setting_make" $now
+        my_log "makeing......" $now
+        writeLogByCommand "make $setting_make -j8"
+    fi
+fi
+if [[ $? -gt 0 ]];then
+    workResult='FAILED'
+else
+    workResult='SUCCEED'
+fi
+
+##############################################
+#restore settings code
+#if [ $workResult = "SUCCEED" -a "$settingsCodeStashed" = "true" ];then
+if [ $workResult = "SUCCEED" -a "$target" = "setting" ];then
+    cd $android_project$setting_project
+    newBranch=`git branch | grep '*'`
+    isNeedCheckout "$newBranch" "$beforRepoBranch"
+    if [[ $? -eq 0 ]];then
+        my_log "the current commit log is:"
+        writeLogByCommand "git log -4"
+        
+        #the check out branch, will restore the old branch.
+        # the old branch just like '* bugfix-listview-catom', so cut it.
+        my_log "old branch is:$beforRepoBranch"
+        my_log "new branch OR new head is:$newBranch"
+        actuallyBranchIs=`echo "$beforRepoBranch" | cut -d ' ' -f2-`
+        writeLogByCommand "git checkout $actuallyBranchIs"
+        writeLogByCommand "git pull --rebase"
+
+        if [ "$settingsCodeStashed" = "true" ];then        
+            writeLogByCommand "git stash list"
+            writeLogByCommand "git stash pop"
+            my_log "setting stash poped, please check it"
+        else
+            my_log "setting do not have stash, just check out branch"
+        fi
+    elif [[ $? -eq 1 ]];then
+        writeLogByCommand "git stash list"
+        my_log "\nwill pop the carrent stash to branch"
+        writeLogByCommand "git stash pop"
+        my_log "\nsetting stash poped, please check it"
+    fi
+fi
+
+
+## restore and clear
+rm $tmpLogFile
+# keep the latest log for this project
+cd $log_folder
+fileCount=`ls -a log-$product_name-* | grep -v "$now" | wc -l`
+if [ "$fileCount" -gt 0 ]; then
+    # delete file yestoday day
+    ls -a log-$product_name-* | grep -v "$now" | xargs rm -rf
+fi
+cd $yourDir
+
+my_log "Home work $android_project done with $workResult!\n working logs: $log_folder"log-"$product_name-$now".log"\n" $now
+echo -e "Home work $android_project done with $workResult!\n working logs: $log_folder"log-"$product_name-$now".log"\n"
+
+

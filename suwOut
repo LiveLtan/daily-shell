@@ -1,0 +1,7 @@
+#!/bin/bash
+adb="/home/ltan/system-config/bin/my-adb"
+
+$adb mount;
+$adb settings put secure user_setup_complete 1;
+$adb settings put global device_provisioned  1;
+$adb shell am start -n com.smartisanos.setupwizard/.SetupWizardCompleteActivity

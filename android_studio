@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo -e `date "+%Y%m%d-%H%M%S"`"\nAndroid Studio is running ?\n" > /tmp/.crontab.log
+/data/env/android-studio/bin/studio.sh 1 > /dev/null 2>&1 &;
+echo -e `date "+%Y%m%d-%H%M%S"`"\nAndroid Studio is running...\n" >> /tmp/.crontab.log

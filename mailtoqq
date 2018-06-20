@@ -1,0 +1,79 @@
+#!/bin/bash
+
+prog_name="`basename \"$0\"`"
+getme='/home/ltan/system-config/bin/get-about-me'
+#no envirment
+mail='/home/ltan/system-config/bin/mailx'
+
+function die() {
+    echo -e "\n"Error: "$@"
+    echo
+    Usage 1
+}
+
+function Usage()
+{
+    echo "Usage: $prog_name OPTIONS <message_file>"
+    echo
+    echo "Main Options:"
+    echo "    -h:                 this little help"
+    echo "    -t recipient:       mail to somebody"
+    echo "    -c cc_recipient:    cc to somebody"
+    echo "    -b bcc_recipient:   bcc to somebody"
+    echo "    -s subject:         subject"
+    echo "    -a file:            attachments"
+    echo "    -m message:         the mail text, refer to a file"
+    exit "$@"
+}
+
+subject="subject"
+rec_type=to
+
+while true; do
+    case "$1" in
+        -s)
+            subject=("$2")
+            shift;
+            shift;
+            ;;
+        -t)
+            rec_type=to
+            shift 2;
+            ;;
+        -c)
+            rec_type=cc
+            shift 2;
+            ;;
+        -m)
+            fileMessage=$1
+            shift 2;
+            ;;
+        -d)
+            shift 2;
+            ;;
+        -*)
+            die unknown option $1
+            shift
+            ;;
+        *)
+            break
+            ;;
+     esac
+done
+
+fileMessage=$1
+
+qqEmail=$($getme mailto)
+emailCC=$($getme mailcc)
+#emailCC=$($getme mailBcc)
+
+if [[ $# -gt 1 ]];then
+    die "invalidate parames, only a message file."
+fi
+
+if test -e "$fileMessage";then
+    echo -e "\nEmail sending..."
+    $mail "$qqEmail" -c "$emailCC" -s "$subject" < "$fileMessage"
+else
+    Usage;
+fi

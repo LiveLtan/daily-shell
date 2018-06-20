@@ -1,0 +1,6 @@
+#!/bin/bash
+
+phoneIp=`adb shell ifconfig | grep -A3 'wlan0' | grep "inet addr:" | awk '{print $2}' | cut -d ':' -f2`
+echo "your device IP is:"$phoneIp
+adb tcpip 5555
+adb connect $phoneIp

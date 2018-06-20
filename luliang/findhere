@@ -1,0 +1,3 @@
+#!/bin/bash
+export PATH
+find . | grep --color=auto -i $1
