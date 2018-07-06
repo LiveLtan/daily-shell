@@ -1,5 +1,12 @@
 #!/bin/bash
-path="$1"
-#echo "path="$path
-aaa=`echo "$path" | cut -d ":" -f2- | sed -e 's/\//\\\/g'`
-echo "$aaa"
+
+pathTxt=`printf $1`
+set -o pipefail
+set +e
+echo $pathTxt | grep ":" > /dev/null 2>&1
+if test $? -gt 0;then
+    path=`echo "$pathTxt" | sed -e 's/\//\\\/g'`
+else
+    path=`echo "$pathTxt" | cut -d ":" -f2- | sed -e 's/\//\\\/g'`
+fi
+echo "$path"

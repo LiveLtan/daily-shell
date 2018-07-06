@@ -1,9 +1,6 @@
 #!/bin/bash
 
-##!/usr/bin/perl
-
-path="$1"
 #path='\\172.16.2.225\SW_Test\jijiabin\bug\264590'
-aaa=`echo "$path" | sed -e 's/\\\\/\//g'`
-echo "smb:$aaa"
 
+path=`echo "$1" | sed -e 's/\\\\/\//g'`
+echo "smb:$path"

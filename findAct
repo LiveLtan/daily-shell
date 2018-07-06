@@ -1,0 +1,39 @@
+#!/bin/bash
+
+sdk=''
+aapt=''
+function work_core() {
+    package=`aapt dump badging $* 2>/dev/null | grep -E '^package' | awk '{print $2}' | sed s/name=//g | sed s/\'//g`
+    activity=`aapt dump badging $* 2>/dev/null | grep 'launchable-activity' | awk '{print $2}' | sed s/name=//g | sed s/\'//g`
+    echo "package:"$package
+    echo "activity:"$activity
+}
+
+# params count
+if test $# -lt 1;then
+    echo 'please input an apk file first.'
+    exit 1;
+fi
+
+which "aapt"
+if test $? -gt 0;then
+    oldDir=$PWD
+    read -p 'read sdk root... ' sdk
+    sdkDirName=`basename $sdk`
+    sdkDirPath=`dirname $sdk`
+    #sdk='/data/env/android-sdk/'
+    sdk="$sdkDirPath/$sdkDirName"
+    aaptDir=`cd $sdk;ls 'build-tools' | tail -1`
+    aapt="$sdk/build-tools/$aaptDir"aapt
+    #eval echo "$sdk/build-tools/$aaptDir" >> ~/.bashrc
+    apName=`basename $aaptDir`
+    uName=`who | awk '{print $1}'`
+    sudo echo "export PATH=$sdk/build-tools/$apName:\$PATH" >> /home/$uName/.bashrc
+    cd $oldDir
+    echo "sdk:"$sdk", sdkDirPath:"$sdkDirPath", aapt:"$aapt
+    echo -e '\033[31mPlease exit the current terminal to make sure findAci effection.\n\033[0m';
+    gnome-terminal --window
+    exit 0
+else
+    work_core $*
+fi

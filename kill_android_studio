@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "killing android studio..."
 asProcess=`ps -Alf | grep "android-studio" | grep "bootclasspath" | awk '{print $4}'`
-if test ! $asProcess = "";then
+if test ! "$asProcess" = "";then
     kill -15 $asProcess
     echo "Android Studio stopped"
 fi
