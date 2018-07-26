@@ -4,7 +4,7 @@ project=$1
 oldDir=`pwd`
 android_project=''
 product_type=''
-androidO=''
+androidO=false
 
 case $1 in
     t2|icekey)
@@ -33,13 +33,13 @@ case $1 in
     project='trident'
     android_project='/home/ltan/src/android-trident-dev/'
     product_type='trident-userdebug'
-    androidO=true
+    androidO=false
     ;;
     trinity)
     project='trinity'
     android_project='/home/ltan/src/android-trident-trinity/'
     product_type='trident_tnt-userdebug'
-    androidO=true
+    androidO=false
     ;;
     oscar)
     project='oscar'

@@ -142,30 +142,30 @@ do
     echo -e "wtf key=$KEY"
 
 	case $KEY in
-	'#values') VALUE_DIR=values
+	[#]values) VALUE_DIR=values
 		#echo -e "\n$KEY"
 		continue
 		;;
-	"#values-zh-rTW"*) VALUE_DIR=values-zh-rTW
+	[#]values-zh-rTW) VALUE_DIR=values-zh-rTW
 		#echo -e "\n$KEY"
 		continue
 		;;
-	"#values-ja"*) VALUE_DIR=values-ja
+	[#]values-ja) VALUE_DIR=values-ja
 		#echo -e "\n$KEY"
 		continue
 		;;
-	"#values-ko"*) VALUE_DIR=values-ko
+	[#]values-ko) VALUE_DIR=values-ko
 		#echo -e "\n$KEY"
 		continue
 		;;
-	"#values-zh-rCN"*) VALUE_DIR=values-zh-rCN
+	[#]values-zh-rCN) VALUE_DIR=values-zh-rCN
 		continue
 		;;
-	"#values-ru"*) VALUE_DIR=values-ru
+	[#]values-ru) VALUE_DIR=values-ru
 	    echo 'wtf .....'$VALUE_DIR
 		continue
 		;;
-	"#"*)
+	[#]*)
 		#echo "jump comment line $KEY"
 		continue
 		;;
