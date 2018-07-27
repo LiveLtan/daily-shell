@@ -1,0 +1,14 @@
+#!/bin/bash
+adb='/home/ltan/system-config/bin/my-adb'
+#echo "AdbMounted:"$AdbMounted
+if test ! "$AdbMounted" = true;then
+	$adb root;
+	ret=`$adb remount | grep "succeeded" | wc -l`
+	echo 'ret =?'$ret
+	mount=false
+	if test "$ret" -gt 0;then
+		echo "mounted.............."
+	    mount=true
+	fi
+	export AdbMounted=$mount
+fi

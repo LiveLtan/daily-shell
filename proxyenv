@@ -1,0 +1,76 @@
+#!/bin/bash
+
+##!/bin/bash
+
+#proxyed=`cat /etc/apt/apt.conf | grep 'Acquire'`
+#if test ! -z "$proxyed";then
+#	exit 0;
+#fi
+
+# for terminal
+export proxyserveraddr=127.0.0.1
+export proxyserverport=1080
+export HTTP_PROXY="http://$proxyserveraddr:$proxyserverport/"
+export HTTPS_PROXY="https://$proxyserveraddr:$proxyserverport/"
+export FTP_PROXY="ftp://$proxyserveraddr:$proxyserverport/"
+export SOCKS_PROXY="socks://$proxyserveraddr:$proxyserverport/"
+export NO_PROXY="localhost,127.0.0.1,localaddress,.localdomain.com,200.200..;11.11.0.0;"
+export http_proxy="http://$proxyserveraddr:$proxyserverport/"
+export https_proxy="https://$proxyserveraddr:$proxyserverport/"
+export ftp_proxy="ftp://$proxyserveraddr:$proxyserverport/"
+export socks_proxy="socks://$proxyserveraddr:$proxyserverport/"
+export no_proxy="localhost,127.0.0.1,localaddress,.localdomain.com,200.200..;11.11.0.0;"
+
+# for chrome,firefox
+## manul mode
+#LOCAL_RANGE="::1', '172.16.2.22/80', '172.16.2.23/80', '172.19.0.8', '172.19.0.9/8080', '172.19.0.9',
+#'172.16.21.20', 'ota.smartisan.cn', 'mantis.smartisan.cn"
+#gsettings set org.gnome.system.proxy mode 'manual'
+#gsettings set org.gnome.system.proxy.socks port $proxyserverport
+#gsettings set org.gnome.system.proxy.socks host $proxyserveraddr
+#gsettings set org.gnome.system.proxy ignore-hosts "['localhost', 'review.smartisan.cn', '*.localdomain.com', '${LOCAL_RANGE}' ]"
+
+## auto mode
+gsettings set org.gnome.system.proxy mode 'auto'
+gsettings set org.gnome.system.proxy autoconfig-url file:///home/ltan/conf/autoproxy.pac
+
+
+# for apt-get
+# do not use http...
+#Acquire::http::proxy "http://$proxyserveraddr:$proxyserverport/";
+#Acquire::https::proxy "https://$proxyserveraddr:$proxyserverport/";
+#Acquire::ftp::proxy "ftp://$proxyserveraddr:$proxyserverport/";
+cat <<-EOF| sudo tee /etc/apt/apt.conf
+Acquire::socks::proxy "socks://$proxyserveraddr:$proxyserverport/";
+EOF
+
+# echo -n "Acquire::http::proxy http://$proxyserveraddr:$proxyserverport/;
+# Acquire::https::proxy https://$proxyserveraddr:$proxyserverport/;
+# Acquire::ftp::proxy ftp://$proxyserveraddr:$proxyserverport/;
+# Acquire::socks::proxy socks://$proxyserveraddr:$proxyserverport/;" | sudo tee /etc/apt/apt.conf
+
+# local ret=$?
+# (
+#     #if test "$context"; then
+#     #    eval "$context"
+#     #fi
+
+#     if test "$after"; then
+#         eval "$after"
+#     fi
+#     echo "return value is:"$ret
+#     . /home/ltan/bin/unproxyenv
+# )
+# return $ret
+
+# export DISPLAY=:0.0
+# whenExit() {
+#    echo 'proxy return???'"$?"
+#    exit 1
+#    return 0;
+# }
+# trap 'whenExit SIGTERM' SIGTERM
+# trap 'whenExit SIGINT'  SIGINT
+
+### sleep aways
+# sleep 360000

@@ -1,0 +1,162 @@
+#!/bin/bash
+
+adb='/home/ltan/system-config/bin/my-adb'
+rootDir='/home/ltan/src/android-trident-dev'
+#rootDir='/home/ltan/tmptest'
+#targetDir='frameworks'
+#targetDir='packages'
+#dstDirSuffix='/sdcard/alltest'
+
+
+#targetDir="$1"
+maxFileNumber=1
+allFilesNumber=0
+
+export DBG=false
+export RLS=true
+
+
+function justPush() {
+	src=$1
+	dst=$2
+	echo -e "from:["$src']\nto:'$dst
+	#$adb push $src $dst
+	$adb push $src $dst
+}
+
+function pushFiles() {
+	local oldDir=$PWD
+	#cd $rootDir
+	local dir=$1
+	shift
+	local files=$*
+	local dst=$dstDirSuffix/$dir
+	#echo -e "in pushFiles together from:"$dir'\tto:'$dst"\ntogether files:"${files[*]}
+	justPush "${files[*]}" $dst
+	#cd $oldDir
+}
+
+function pushFile() {
+	local parent=$1
+	local file=$2
+	#echo "----pushFile s1:"$1", s2:"$2", s3:"$3
+	local src=$parent/$file
+	basename=$(dirname $src)/
+	local dst=$dstDirSuffix/$basename
+	#echo -e "src:"$src'\ndst:'$dst
+	echo '  pushing file:'$src
+	#$adb push "$src" "$dst"
+}
+
+function pushDir() {
+	local parent=$1
+	local dir=$2
+	local i=0
+	local -a dirFiles
+	#local reallyDir="$rootDir/$parent/$dir"
+	local reallyDir="$parent/$dir"
+	tl-log "device path:"$dstDirSuffix/$parent/$dir
+	local devieDir="$dstDirSuffix/$parent/$dir"
+	$adb shell mkdir -p $devieDir >/dev/null
+	tl-log '=============now working dir:'$parent/$dir"'============="
+
+	### push dir when it's not a git repository.
+	### but the sub dir may have a git, so abandoned it.
+	# git=`ls -a "$parent/$dir" | grep 'git' | wc -l`
+	# if test $git -lt 1;then
+	# 	#pushFile $parent "$dir/"
+	# 	justPush "$parent/$dir/" "$dstDirSuffix/$parent/$dir/"
+	# 	tl-log "----------------- pushing none git $dir ---------------end"
+	# 	return 0;
+	# fi
+
+
+	### push dir when src, values or drawable
+	string-contains $dir assets src res java > /dev/null
+	if test $? -eq 0;then
+		justPush "$parent/$dir/" "$dstDirSuffix/$parent/$dir/"
+		return 0
+	fi
+
+	for file in `ls $reallyDir`
+	do
+
+		if [ -d "$reallyDir/$file" ];then
+			#echo -e "start this is dir $file"
+			pushDir "$reallyDir" $file
+		elif [ -f "$reallyDir/$file" ];then
+			tl-log "start this is file $file"
+			#pushFile "$reallyDir" $file
+			dirFiles=("${dirFiles[@]}" "$reallyDir/$file")
+		else
+			echo 'can not read this file:'$reallyDir/$file;
+		fi
+		# let i=($i+1)
+		# if test "$i" -ge $maxFileNumber;then
+		# 	break
+		# fi
+	done
+	tl-log -e "the :$dir: have ${#dirFiles[@]} files"
+	echo
+	echo
+	if test ${#dirFiles[@]} -gt 0;then
+		pushFiles "$reallyDir/" "${dirFiles[@]}"
+		let allFilesNumber=($allFilesNumber + 1)
+	elif test $i -eq 0;then
+		echo -e "push empty dir:"$reallyDir
+		#justPush "$parent/$dir/" "$dstDirSuffix/$parent/$dir/"
+		$adb shell mkdir -p "$dstDirSuffix/$parent/$dir" > /dev/null
+	fi
+	tl-log "under $dir file is:"$i
+}
+
+function push() {
+	local targetDir=$1
+	if test -z "$targetDir";then
+		echo "empty dir detected..."
+		exit -1
+	fi
+	. mount-adb > /dev/null
+	oldDir=$PWD
+	local i=0
+	cd $rootDir
+	allFile=`ls $targetDir`
+	for file in $allFile
+	do
+		#echo 'push      file is:'$file
+		if [ -d "$targetDir/$file" ];then
+			#echo -e "start this is dir $file"
+			pushDir $targetDir $file
+			echo -e "end the dir $targetDir/$file"
+		elif [ -f "$targetDir/$file" ];then
+			#echo -e "start this is file $file"
+			#pushFile $targetDir $file
+			justPush "$targetDir/$file" "$dstDirSuffix/$targetDir/"
+			echo -e "end the file $targetDir/$file"
+			let allFilesNumber=($allFilesNumber + 1)
+		fi
+
+		# let i=($i + 1)
+		# if test "$i" -ge $maxFileNumber;then
+		# 	echo '-------------------------------skip?'
+		# 	break
+		# fi
+	done
+	echo "all files number is:"$allFilesNumber
+	time=`date`
+	echo $time >> now.txt
+	cd $oldDir
+}
+dstDirSuffix='/sdcard/alltest'
+time-write /home/ltan/pushtest.txt
+push 'frameworks'
+time-write /home/ltan/pushtest.txt
+push 'packages'
+time-write /home/ltan/pushtest.txt
+
+dstDirSuffix='/sdcard/alltest2'
+time-write /home/ltan/pushtest.txt
+push 'frameworks'
+time-write /home/ltan/pushtest.txt
+push 'packages'
+time-write /home/ltan/pushtest.txt

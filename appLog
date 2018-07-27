@@ -1,0 +1,6 @@
+#!/bin/bash
+adb='/home/ltan/system-config/bin/my-adb'
+
+pkgName="$1"
+pid=`$adb shell ps | grep $pkgName | awk '{print $2}'`
+$adb logcat | grep --color=auto $pid

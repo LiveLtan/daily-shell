@@ -1,0 +1,5 @@
+#!/bin/bash
+
+sudo proxyenv
+dateString=`date`
+echo "$dateString" > /home/ltan/ltan-proxy.log

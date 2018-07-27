@@ -1,0 +1,25 @@
+#!/bin/bash
+adb root
+sleep 3
+addr_line=`adb shell ifconfig | grep "inet addr:.* Bcast:"`
+
+# this is a advance style
+addr=`echo ${addr_line} | sed 's/.*inet addr:\(.*\) B.*/\1/g'`
+
+# this is the common style
+#addr=`echo ${addr_line} | awk '{print $2}' | cut -d ':' -f2
+
+port=5555
+adb tcpip ${port}
+adb connect ${addr}:${port}
+connected=$?
+if test "$connected" -gt 0;then
+	# may be refused
+	sleep 1
+	adb connect ${addr}:${port}
+fi
+echo "adb connect ${addr}:${port}" > /home/ltan/tmp/wifiadb.log
+echo
+echo "if refused: adb connect ${addr}:${port}"
+echo 'log in /home/ltan/tmp/wifiadb.log'
+echo

@@ -1,0 +1,8 @@
+#!/bin/bash
+dstFile=$1
+time=`date`
+if test -f $dstFile;then
+	echo $time >> $dstFile
+else
+	echo $time > $dstFile
+fi

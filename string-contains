@@ -1,0 +1,41 @@
+#!/bin/bash
+
+sourceString=$1
+targetString=$2
+
+if test -z $targetString;then
+	echo 'which string you want to check'
+	exit 1
+fi
+#result=$(echo "$sourceString" | grep "$targetString")
+
+#if [[ $oldDir == *$tvar* ]];then
+
+#if [[ $oldDir =~ "odin" ]];then
+
+# if [[ "$result" != "" ]];then
+#     echo "$sourceString has $targetString"
+#     exit 0;
+# else
+# 	echo "$sourceString has not $targetString"
+# 	exit 1;
+# fi
+
+has=false
+shift
+while [[ ! -z $1 ]]; do
+	targetString=$1
+	shift
+	result=$(echo "$sourceString" | grep "$targetString")
+	if [[ "$result" != "" ]];then
+	    echo "while $sourceString has $targetString"
+	    has=true
+	    break
+	fi
+done
+
+if test $has = true;then
+	exit 0;
+else
+	exit 1;
+fi

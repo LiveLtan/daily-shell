@@ -1,8 +1,37 @@
 #!/bin/bash
-echo sa="$@"
-echo s*="$*"
-echo s#="$#"
-echo s?="$?"
-echo s1="$1"
-echo s2="$2"
-echo s3="$3"
+
+while read -r line || [ -n "$line" ]
+do
+
+    if [ -z "$line" ]; then
+		echo "empty char, just continue"
+		continue
+	fi
+
+	#KEY=`echo "$line" | cut -d ' ' -f 1`
+    #echo -e "the line is:$line"
+
+case $line in
+    [#]abc)
+        echo "#abc...."
+    ;;
+    [#]*)
+        echo "#*...."
+    ;;
+    *)
+        echo "empty"
+    ;;
+esac
+done < $1
+
+exit 0;
+txt=`printf $*`
+set -o pipefail
+set +e
+echo $txt | grep ":" > /dev/null 2>&1
+if test $? -gt 0;then
+    path=`echo "$txt" | sed -e 's/\//\\\/g'`
+else
+    path=`echo "$txt" | cut -d ":" -f2- | sed -e 's/\//\\\/g'`
+fi
+echo "$path"

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+if test "$DBG" = true;then
+	echo "$*"
+fi
