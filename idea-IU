@@ -1,8 +1,13 @@
 #!/bin/bash
+logDir='/home/ltan/var/log'
+if test ! -d $logDir;then
+    mkdir -p $logDir
+fi
+
 ret=`ps -A | grep -i "IntelliJIDEALic" | wc -l`
 echo -e "idea running?"$ret"\n"
 if [ $ret -eq 0 ];then
     echo "starting"
-    /data/env/IntelliJIDEALicenseServer_linux_386 1> /dev/null 2>&1 &
+    /data/env/IntelliJIDEALicenseServer_linux_386 -p 51017 -u ltan 1> $logDir/idea.log 2>&1 &
 fi
-echo -e "idea running...\n"
+echo -e "idea running...\n"`date` > $logDir/idea.log
