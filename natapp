@@ -13,7 +13,13 @@ else
 fi
 
 if test $natppCount -lt 1;then
-    /data/env/natapp -authtoken 14ae8f66afcc9370 1> $logDir/natapp.log 2>&1 &
+    #/data/env/natapp -authtoken 14ae8f66afcc9370 -log $logDir/natapp.log &
+    #sudo strace -e trace=write -s 200 -f -p $pid 1> $logDir/strace.log 2>1 &
+    #sudo strace -v -s 200 -f -p $pid -o $logDir/strace.log &
+
+    nohup /data/env/natapp -authtoken 14ae8f66afcc9370 1> $logDir/natapp.log 2>&1 &
+    pid=$!
+    echo "got PID: $pid..."`date` > $logDir/natapp.log
 else
-    echo "natapp PID: $natPid is running..."`date` > $logDir/natapp.log
+    echo "natapp PID: $natPid is running..."`date` >> $logDir/natapp.log
 fi

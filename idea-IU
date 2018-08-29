@@ -7,7 +7,7 @@ fi
 ret=`ps -A | grep -i "IntelliJIDEALic" | wc -l`
 echo -e "idea running?"$ret"\n"
 if [ $ret -eq 0 ];then
-    echo "starting"
-    /data/env/IntelliJIDEALicenseServer_linux_386 -p 51017 -u ltan 1> $logDir/idea.log 2>&1 &
+    echo "starting" > $logDir/idea.log
+    /data/env/IntelliJIDEALicenseServer_linux_386 -p 51017 -u ltan >> $logDir/idea.log 2>&1 &
 fi
 echo -e "idea running...\n"`date` > $logDir/idea.log

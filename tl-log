@@ -1,5 +1,11 @@
 #!/bin/bash
 
+logDir='/home/ltan/var/log'
+if test ! -d $logDir;then
+    mkdir -p $logDir
+fi
+
+
 if test "$DBG" = true;then
 	echo "$*"
 fi

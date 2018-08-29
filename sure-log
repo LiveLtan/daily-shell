@@ -1,0 +1,17 @@
+#!/bin/bash
+logDir='/home/ltan/var/log'
+if test ! -d $logDir;then
+    mkdir -p $logDir
+fi
+targetFile=''
+if test ! -z "$1";then
+    if test -f $logDir/$1.log;then
+        targetFile="$logDir/$1.log"
+    else
+        targetFile="$logDir/$1.log"
+    fi
+    touch $targetFile
+fi
+if test ! -z $targetFile;then
+    echo "$targetFile"
+fi

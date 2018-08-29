@@ -1,7 +1,7 @@
 #!/bin/bash
 yourDir=`pwd`
 mrepo='/home/ltan/bin/mrepo'
-
+declare fetchAll=true
 function die() {
     echo Error: "$@"
     echo
@@ -25,6 +25,7 @@ function Usage()
     echo "    -t target:          the module you want to make"
     echo "    -p project:         which project you worked in"
     echo "    -o option:          if you like MAKE directly"
+    echo "    -fd fetch depth:    default all"
     exit "$@"
 }
 
@@ -44,6 +45,10 @@ while true; do
             ;;
         -t|-T)
             target=$2
+            shift 2;
+            ;;
+        -fd)
+            fetchAll=$2
             shift 2;
             ;;
         -*)
@@ -172,8 +177,11 @@ record_gitlog() {
     fi
     
     # fetching
-    writeLogByCommand "git fetch $remotePro --depth=1"
-    #writeLogByCommand "git fetch $remotePro"
+    if test "$fetchAll" = true;then
+        writeLogByCommand "git fetch $remotePro"
+    else
+        writeLogByCommand "git fetch $remotePro --depth=1"
+    fi
     writeLogByCommand ". $mrepo sync . "
     ret=$?  
     if [ $ret -gt 0 ];then
