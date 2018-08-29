@@ -81,6 +81,16 @@ function updateString(){
 	STRING_NAME=`echo "$1" | cut -d "\"" -f 2`
 	STRING_NAME="\"${STRING_NAME}\""
 	#echo "string name: $STRING_NAME"
+    tmp=$(echo "$1" | grep "^<string ")
+    startWithString=$?
+    if [ "$startWithString" -gt 0 ];then
+    #if [[ ! "$1" =~ '<string' ]];then
+        echo -e "this lien do not has string"$1", just return!\n"
+        #if [[ ! "$1" =~ "plurals" ]];then
+        #return;
+        #fi
+        return;
+    fi
 	LINE_NUM=""
 	if [ -f $SMARTISAN_STRING_FILE ]; then
 		LINE_NUM=`grep -n $STRING_NAME $SMARTISAN_STRING_FILE | grep -v "!--" | cut -d ':' -f 1`
@@ -114,6 +124,14 @@ function updateString(){
 	fi
 
 
+}
+
+function generateResDir() {
+    resDir=$1
+    if [ ! -d "res/$resDir" ];then
+        echo -e "generated the resource directory:" res/$resDir
+        mkdir -p "res/$resDir"
+    fi
 }
 
 
@@ -162,25 +180,20 @@ do
 		#echo -e "\n$KEY"
 		continue
 		;;
-	[#]values-ja) VALUE_DIR=values-ja
-		#echo -e "\n$KEY"
-		continue
-		;;
-	[#]values-ko) VALUE_DIR=values-ko
-		#echo -e "\n$KEY"
-		continue
-		;;
 	[#]values-zh-rCN) VALUE_DIR=values-zh-rCN
 		continue
 		;;
-	[#]values-ru) VALUE_DIR=values-ru
-	    echo 'wtf .....'$VALUE_DIR
+	[#]values-*)
+		#echo -e "\n$KEY"
+		resDir=`echo "$KEY" | cut -d '#' -f2`
+		generateResDir "$resDir"
+		VALUE_DIR=$resDir
 		continue
 		;;
 	[#]*)
-		#echo "jump comment line $KEY"
-		continue
-		;;
+        echo "jump comment line $KEY"
+        continue
+        ;;
 	*)
 	;;
 	esac
@@ -188,7 +201,7 @@ do
 
 	#echo "current line: $line"
 	#echo "-------------add string"
-	echo "current dir:"$VALUE_DIR
+	#echo "current dir:"$VALUE_DIR", line:"$line
 
 
 	ANDROID_STRING_FILE="res/$VALUE_DIR/strings.xml"
