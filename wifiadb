@@ -1,4 +1,18 @@
 #!/bin/bash
+
+logfile=`sure-log wifiadb`
+
+if test "$1" = "-r";then
+    command=`cat $logfile`
+    $command
+    echo "recennect successed? $?"
+    adb devices
+    exit
+elif test "$1" = "-d";then
+    adb disconnect
+    exit
+fi
+
 adb root
 sleep 3
 addr_line=`adb shell ifconfig | grep "inet addr:.* Bcast:"`
@@ -18,8 +32,8 @@ if test "$connected" -gt 0;then
 	sleep 1
 	adb connect ${addr}:${port}
 fi
-echo "adb connect ${addr}:${port}" > /home/ltan/tmp/wifiadb.log
+
+echo "adb connect ${addr}:${port}" > $logfile
 echo
-echo "if refused: adb connect ${addr}:${port}"
-echo 'log in /home/ltan/tmp/wifiadb.log'
+echo "log in $logfile, if refused: adb connect ${addr}:${port}"
 echo

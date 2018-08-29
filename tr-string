@@ -24,7 +24,11 @@ export PATH
 #
 function updateLine(){
 	#add four empty char at the front of line, just like tab
-	TARGET_STRING="  "$3
+    if test $stringSpaces -eq 4;then
+        TARGET_STRING="    "$3
+    else
+        TARGET_STRING="  "$3
+    fi
 	TARGET_STRING=${TARGET_STRING//\\/\\\\}
 	CMD="$2c\\$TARGET_STRING"
 	#echo "exec cmd: ${CMD}"
@@ -39,7 +43,11 @@ function updateLine(){
 function appendString(){
 	LINE_NUM=`grep -n '</resources>' $1 | cut -d ':' -f 1`
 	let LINE_NUM-=1
-	TARGET_STRING="  "$2
+    if test $stringSpaces -eq 4;then
+        TARGET_STRING="    "$2
+    else
+        TARGET_STRING="  "$2
+    fi
 	TARGET_STRING=${TARGET_STRING//\\/\\\\}
 	CMD="${LINE_NUM}a\\${TARGET_STRING}"
 	#echo "execute appendString: $CMD"
@@ -124,6 +132,10 @@ fi
 
 VALUE_DIR=values
 
+stringSpaces=4
+if test ! -z "$2";then
+    stringSpaces=$2
+fi
 
 if [ ! -f $STRING_FILE ]; then
 	echo "string xml file $STRING_FILE not exists, operation failed!!!"
@@ -139,7 +151,7 @@ do
 	fi
 
 	KEY=`echo "$line" | cut -d ' ' -f 1`
-    echo -e "wtf key=$KEY"
+    #echo -e "wtf key=$KEY"
 
 	case $KEY in
 	[#]values) VALUE_DIR=values
