@@ -1,0 +1,16 @@
+#!/bin/bash
+
+if test "$1" = "-kr";then
+    pidof fcitx | xargs kill
+    pidof sogou-qimpanel | xargs kill
+    nohup fcitx  1>/dev/null 2>/dev/null &
+    nohup sogou-qimpanel  1>/dev/null 2>/dev/null &
+elif test "$1" = "-r";then
+    # use command by ubuntu
+    fcitx -r 1>/dev/null 2>&1 &
+    
+    #---- or kill it
+    #pidof fcitx|xargs kill
+    #fcitx 1>/dev/null 2>&1 &
+    #sogou-qimpanel 1>/dev/null 2>&1 &
+fi
