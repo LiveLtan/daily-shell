@@ -1,0 +1,13 @@
+#!/bin/bash
+if test -z "$1";then
+	exit 2;
+fi
+
+tmpLog=$1
+echo ""
+while [[ true ]]; do
+	str=$(tail -1 $tmpLog)
+	#echo -en "\r$str"
+	echo -e "\r$str\n"
+	sleep 2
+done

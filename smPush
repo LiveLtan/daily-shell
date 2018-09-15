@@ -1,0 +1,12 @@
+#!/bin/bash
+localBranch=`git branch | grep "*"`
+function hasQuote() {
+    strSrc=$1
+    ret=$(echo $strSrc | grep "\(\)")
+    if test "$ret" != "";then
+        return 0;
+    fi
+    return 1;
+}
+
+

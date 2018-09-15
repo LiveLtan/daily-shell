@@ -1,0 +1,10 @@
+#!/bin/bash
+log='/tmp/shell-test.log'
+
+echo "async shell running."`date` > $log
+for (( i = 0; i < 60; i++ )); do
+	#statements
+	sleep 0.1
+	echo -e "after sleep $i \nmore log for log\nand mulity lins..." >> $log
+done
+exit 0

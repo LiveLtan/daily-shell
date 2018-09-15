@@ -1,0 +1,47 @@
+#!/bin/bash
+
+trap 'taskClean; exit' INT
+
+function taskClean() {
+	set +e
+	kill ${asyncPid}
+	kill ${checkPid}
+	set -e
+}
+
+oldDir=$PWD
+flashDir=$1;
+if test -z "$1";then
+	flashDir='./'
+fi
+cd $flashDir
+
+flashFileName='edl-flash.sh'
+number=$(ls | grep "$flashFileName" | wc -l)
+echo "number = $number"
+
+if test ! $number -eq 1;then
+	echo "Please check the dir, Is it contains edl-flash.sh ?"
+	exit -1;
+fi
+
+if test ! -x $flashFileName;then
+	chmod 777 -R ./*
+fi
+
+log='/tmp/shell-test.log'
+sudo ./$flashFileName > "$log" &
+asyncPid=$!
+/home/ltan/bin/check-running "$log" &
+checkPid=$!
+
+wait ${asyncPid}
+taskResult=$?
+kill ${checkPid}
+if test $taskResult -gt 0;then
+	echo "Please check the log file:"$log
+else
+	echo -e "\nCongratulations, flash done !"
+fi
+
+cd $oldDir
