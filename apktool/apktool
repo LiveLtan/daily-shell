@@ -1,0 +1,3 @@
+#!/bin/bash
+jarFile='/Users/tanlin/bin/apktool/apktool_2.3.4.jar'
+java -jar $jarFile "$@"

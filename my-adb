@@ -1,0 +1,179 @@
+#!/bin/bash
+##################
+## beginning tanlin
+
+the_adb='/Users/tanlin/Library/Android/sdk/platform-tools/adb'
+
+adb_mount() {
+    $the_adb root;
+    $the_adb remount;
+}
+
+topActivity() {
+    $the_adb shell dumpsys activity activities | grep "Run" --color;
+}
+
+topSettingsFragment() {
+    $the_adb logcat -s 'BaseFragment' | grep "BaseFragment" --color;
+}
+
+logcat() {
+    if test "$1" = "-c";then
+        $the_adb logcat -c;
+        clear;
+        return 0;
+    fi
+    $the_adb logcat | grep "$1" --color;
+}
+
+settingsGet() {
+    tmp='global'
+    if test "$1" = "sys" -o "$1" = "system";then
+        tmp='system'
+    elif test "$1" = "sec"  -o "$1" = "secure";then
+        tmp='secure'
+    elif test "$1" = "glo" -o "$1" = "global";then
+        tmp='global'
+    fi
+    $the_adb shell settings get "$tmp" "$2";
+}
+settingsPut() {
+    echo "settingsPut:", "table:$1", "key:$2", "value:$3"
+    tmp='global'
+    if test "$1" = "sys" -o "$1" = "system";then
+        tmp='system'
+    elif test "$1" = "sec"  -o "$1" = "secure";then
+        tmp='secure'
+    elif test "$1" = "glo" -o "$1" = "global";then
+        tmp='global'
+    fi
+    $the_adb shell settings put "$tmp" "$2" "$3";
+}
+
+settingsCat() {
+    system='/data/system/users/0/settings_system.xml'
+    secure='/data/system/users/0/settings_secure.xml'
+    global='/data/system/users/0/settings_global.xml'
+    tmp=$global
+    if test "$1" = "sys" -o "$1" = "system";then
+        tmp=$system
+    elif test "$1" = "sec"  -o "$1" = "secure";then
+        tmp=$secure
+    elif test "$1" = "glo" -o "$1" = "global";then
+        tmp=$global
+    fi
+    $the_adb shell cat $tmp | grep -i "$2" --color;
+}
+
+settingSpGet() {
+    settingsSp='/data/user_de/0/com.android.settings/shared_prefs/com.android.settings_preferences.xml'
+    $the_adb shell cat $settingsSp | grep -i "$1" --color;
+}
+settingSpPut() {
+    settingsSp='/data/user_de/0/com.android.settings/shared_prefs/com.android.settings_preferences.xml'
+    $the_adb shell cat $settingsSp | grep -i "$1" --color;
+}
+settingSpCet() {
+    settingsSp='/data/user_de/0/com.android.settings/shared_prefs/com.android.settings_preferences.xml'
+    $the_adb shell cat $settingsSp | grep -i "$1" --color;
+}
+
+kill() {
+    #echo "s1=$1   s2=$2 s3=$3"
+    echo "$1 is killing..."
+    if test "$1" = "settings" -o "$1" = "setting";then
+        $the_adb shell killall 'com.android.settings';
+    elif test "$1" = "setupwizard" -o "$1" = "suw";then
+        $the_adb shell killall 'com.smartisanos.setupwizard';
+    elif test "$1" = "sara";then
+        $the_adb shell killall 'com.smartisanos.sara';
+    else
+        $the_adb shell killall $1
+    fi
+}
+
+disable_verity() {
+    $the_adb root;$the_adb disable-verity;$the_adb reboot;
+}
+
+adb_recovery() {
+    $the_adb reboot recovery;
+}
+
+adb_caton() {
+    #adb logcat | grep "TransferServer"
+    $the_adb logcat | grep 'TransferServer' --color;
+}
+
+if test "$1" = "dbg" -a "$2" = "settings";then
+    exec $the_adb logcat -s "BaseFragment";
+    exit
+fi
+
+#if test "$1" = "kill" -o "$1" = "killall";then
+    #kill $2 $3 $4
+    #exit;
+#fi
+
+if test "$1" = "push" -o "$3" = "push"; then
+    #added by lintan
+    adb_mount;
+elif test "$1" = "mount";then
+    adb_mount;
+    exit 0;
+elif test "$1" = "topa";then
+    topActivity;
+    exit 0;
+elif test "$1" = "topsf";then
+    topSettingsFragment;
+    exit 0;
+elif test "$1" = "list";then
+    $the_adb devices;
+    exit 0;
+elif test "$1" = "log";then
+    shift;
+    logcat $1 $2 $3 $4 $5 $6;
+    exit 0;
+elif test "$1" = "logc";then
+    shift;
+    logcat '-c';
+    exit 0;
+elif test "$1" = "run";then
+    shift;
+    logcat "AndroidRuntime";
+    exit 0;
+elif test "$1" = "get";then
+    shift;
+    settingsGet $1 $2 $3 $4 $5 $6;
+    exit 0;
+elif test "$1" = "put";then
+    shift;
+    settingsPut $1 $2 $3 $4 $5 $6;
+    exit 0;
+elif test "$1" = "cat";then
+    shift;
+    settingsCat $1 $2 $3 $4 $5 $6;
+    exit 0;
+elif test "$1" = "k";then
+    shift;
+    kill $1 $2 $3
+    exit 0;
+elif test "$1" = "spget";then
+    shift;
+    settingSpGet $1 $2 $3
+    exit 0;
+elif test "$1" = "verity" -o "$1" = "v";then
+    disable_verity;
+    exit 0;
+elif test "$1" = "recovery" -o "$1" = "covery";then
+    adb_recovery;
+    exit 0;
+elif test "$1" = "caton" -o "$3" = "caton";then
+    adb_caton;
+    exit 0;
+fi
+
+$the_adb $@
+
+## ending tanlin
+##################

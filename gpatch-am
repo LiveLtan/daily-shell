@@ -1,0 +1,5 @@
+#!/bin/bash
+file=`gpatch-by-commit $*`
+patch=`echo $file | cut -d ' ' -f1`
+echo 'the patch is:'$patch
+mgam $patch

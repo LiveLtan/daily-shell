@@ -1,0 +1,8 @@
+#!/bin/bash
+
+echo 'override emulator'
+oldDir=`pwd`
+emulatorDir="$ANDROID_HOME/emulator/"
+cd $emulatorDir
+./emulator $*
+cd $oldDir

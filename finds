@@ -1,5 +1,5 @@
 #!/bin/bash
-
+curDir='.'
 if test $# -ge 2;then
     curDir="$1"
     shift
@@ -13,4 +13,4 @@ if test "$searchStr" = ""; then
     exit;
 fi
 
-exec find $curDir | xargs grep -ins "$searchStr" | grep "$searchStr" --color
+grep -inrs "$searchStr" $curDir --color

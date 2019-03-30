@@ -1,0 +1,13 @@
+#!/bin/bash
+patch="$*"
+git am $patch
+ret=$?
+if [ $ret -gt 127 ];then
+    cpatch $patch
+    echo 'you should resolve this conflic files'
+elif [[ $ret -eq 0 ]]; then
+    echo 'auto merge done'
+else
+    echo 'last return ?'$ret
+fi
+rm $patch

@@ -1,5 +1,16 @@
 #!/bin/bash
-shellRoot='/home/ltan/bin/'
+
+# Max
+if [ "$(uname)" == "Darwin" ];then
+    shellRoot='/Users/tanlin/bin/'
+# Linux
+elif ["$(expr substr $(uname -s) 1 5) "==" Linux" ];then
+    shellRoot='/home/ltan/bin/'
+else
+    # elif["$(expr substr $(uname -s) 1 10)"=="MINGW32_NT"];then
+    echo 'w t f'
+fi
+
 shellFile=$1
 
 if test "$shellFile" = "";then

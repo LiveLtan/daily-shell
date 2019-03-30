@@ -1,0 +1,22 @@
+#!/bin/bash
+
+echo 'will remove the current *.rej *.orig all'
+rej='*.rej'
+rej2='.*.rej'
+rej3='*/*.rej'
+
+orig='*.orig'
+orig2='.*.orig'
+gitFile=`git status`
+
+for f in $gitFile; do
+    if [[ "$f" =~ rej$ ]];then
+        echo 'removing  rej: '$f
+        rm -f $f
+    elif [[ "$f" =~ orig$ ]]; then
+        echo 'removing orig: '$f
+        rm -f $f
+    fi
+done
+
+echo 'remove done'
