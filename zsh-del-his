@@ -1,0 +1,66 @@
+#!/bin/bash
+who=`whoami`
+keyword="$1"
+file="$2"
+pgName=${0##*/}
+DEBUG=false
+
+function usage() {
+    #command="$0 keyword [file]"
+    echo
+    echo 'Usage:'
+    command="\t$pgName 'keyword' [file]"
+    #$BASH_SOURCE
+    echo -e $command
+}
+
+if [[ -z $keyword ]];then
+    usage
+    exit -1
+fi
+
+if [[ -z $file ]];then
+    file='/Users/'"$who"'/.zsh_history';
+fi
+if ($DEBUG);then
+    echo "file $file"
+fi
+
+# set -e
+if [[ ! -f $file ]];then
+    echo "$file does not exist!"
+    usage
+    exit -2
+fi
+#set +e
+
+lineNums=(`grep -in "$keyword" "$file" | cut -d ':' -f1`)
+matchNum=${#lineNums[@]}
+#let matchNum=$matchNum-1
+echo "I found "$matchNum" lines in $file"
+if ($DEBUG);then
+    totalLines=`wc -l ${file}`
+    echo "before delete, lines are: $totalLines"
+fi
+#for i in {1..100}
+for i in `seq 1 $matchNum`;
+do
+    let j=(i - 1)
+    lineNum=${lineNums[j]}
+    let realNum=($lineNum - j) # line number of file will be descrease when sed -i nd done
+    # echo "original number:"$lineNum", realNum:"$realNum
+    if ($DEBUG);then
+        echo 'will del '${lineNum}'-->'`sed -n ${realNum}p ${file}`
+    fi
+    sed -i '' "${realNum}d" ${file}
+    if [[ $(( $i % 100 )) == 0 ]]; then
+        echo "100 lines deleted"
+    fi
+    # if [[ $i -ge 10 ]]; then
+    #     break
+    # fi
+done
+if ($DEBUG);then
+    leftLines=`wc -l ${file}`
+    echo "after delete, lines are: $leftLines"
+fi
