@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# read tmp file
+classFile="$1"
+
+if [ ! -f $classFile ];then
+	echo 'Please specify a file'
+	exit -1
+fi
+
+sortedFile=".$classFile".sort
+
+# remove the head space/tab
+sed -i '' 's/^[ \t]*//g' $classFile
+# sorted file
+cat $classFile | tr -ds '' '\n' | sort > "$sortedFile"
+# new line for data class
+sed -i '' '/$/G' $sortedFile
+sed -i '' $'s/^val/    val/g' $sortedFile
+
+# clear
+cat $sortedFile
+rm $sortedFile
+sed -i '' $'s/^val/    val/g' $classFile
