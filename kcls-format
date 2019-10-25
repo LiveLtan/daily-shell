@@ -1,0 +1,51 @@
+#!/bin/bash
+
+###############
+#
+# for Kotlin class format, because the outpur of the online json formator
+# is Java. like this
+# class Person {
+#     private String name;
+#     ...
+# }
+# the kotlin class should be this
+# data class Person (
+#     private String name,
+#     ...
+# );
+# 
+#
+###############
+
+# clear empty line
+# sed -i '' '/^$/d' test
+# append empty line, make sure the style like 'val name: Any,\n'
+# sed -i '' '/,$/G' test
+
+lineArray=(`grep -inE 'class|\)|\}' test | cut -d ':' -f1`)
+len=${#lineArray[@]}
+let classNum=($len / 2)
+# for i in `seq 1 $classNum`; do
+#     let index=($i-1)
+#     echo -n "index: $index --- "
+#     echo "it is:"${lineArray[index]}
+# done
+
+# sed -i '' -e $'2 a\\\n<intent-filter></intent-filter>' test
+
+tmp='.sort'
+
+for ((i = 0; i < $len; i+=2)); do
+    # let index=($i-1)
+    # let after=($i + 1)
+    # echo -n "index: --- $i "
+    let line1=(${lineArray[$i]} + 1)
+    let line2=(${lineArray[$i + 1]} + 1)
+    # echo "it is:"${lineArray[$i]} "and" ${lineArray[$i + 1]}
+    echo "it is :"${line1} "and" ${line2}
+    # sed -n ''$line1,$line2'p' test | tr -ds '' '\n' |sort
+    sed -n ''$line1,$line2'p' test | sort -t $'\n' > $tmp
+    cat $tmp
+    sed -i '' $line1,$line2'd' test
+
+done

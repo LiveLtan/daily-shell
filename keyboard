@@ -1,0 +1,20 @@
+#!/bin/bash
+###############
+#
+# keyboard-input.py
+# ref: http://weishu.me/2015/12/01/autoswitch-keyboard-in-mac/
+#
+###############
+
+# input.py is
+inputFile='/Users/tanlin/startup/keyboard-input.py'
+
+#pid=`ps -el | grep keyboard-input.py | grep -v 'grep' | awk '{print $2}'`
+pid=`ps aux | grep keyboard-input.py | grep -v 'grep' | awk '{print $2}'`
+if [ -z "$pid" ];then
+    python $inputFile &
+    #echo "after pid !="$!
+    #echo "after pid $="$$
+else
+    kill $pid
+fi

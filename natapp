@@ -1,25 +1,31 @@
 #!/bin/bash
-logDir='/home/ltan/var/log'
-if test ! -d $logDir;then
-    mkdir -p $logDir
-fi
+############
+#
+# for idea server
+#
+############
 
-natProcess=`ps aux | grep 'natapp -au' | grep 'th'`
-if test -z "$natProcess";then
-    natppCount=0
+args="$1"
+pidFile='/tmp/natpid'
+phpFile='/Users/tanlin/env/IdeaServer/natapp.php'
+
+function quitNatapp() {
+    if [[ ! -f $pidFile ]];then
+        return 0
+    fi
+    pid=`cat $pidFile`
+    if [ ! -z $pid ];then
+        kill -9 $pid
+        cat /dev/null > $pidFile
+        echo "natapp stopped"
+    fi
+}
+
+
+if test "$args" == "-q";then
+    quitNatapp
 else
-    natppCount=`echo $natProcess | wc -l`
-    natPid=`echo $natProcess |awk '{print $2}'`
+    php $phpFile  --authtoken=14ae8f66afcc9370 &
+    echo "$!" > $pidFile
 fi
 
-if test $natppCount -lt 1;then
-    #/data/env/natapp -authtoken 14ae8f66afcc9370 -log $logDir/natapp.log &
-    #sudo strace -e trace=write -s 200 -f -p $pid 1> $logDir/strace.log 2>1 &
-    #sudo strace -v -s 200 -f -p $pid -o $logDir/strace.log &
-
-    nohup /data/env/natapp -authtoken 14ae8f66afcc9370 1> $logDir/natapp.log 2>&1 &
-    pid=$!
-    echo "got PID: $pid..."`date` > $logDir/natapp.log
-else
-    echo "natapp PID: $natPid is running..."`date` >> $logDir/natapp.log
-fi

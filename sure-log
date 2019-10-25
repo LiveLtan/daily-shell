@@ -1,5 +1,11 @@
 #!/bin/bash
-logDir='/home/ltan/var/log'
+############
+#
+# ensure the logfolder exist
+#
+############
+#logDir='/home/ltan/var/log' # linux
+logDir='~/tempary/'
 if test ! -d $logDir;then
     mkdir -p $logDir
 fi
