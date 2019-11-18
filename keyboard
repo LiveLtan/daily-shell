@@ -12,7 +12,7 @@ inputFile='/Users/tanlin/startup/keyboard-input.py'
 #pid=`ps -el | grep keyboard-input.py | grep -v 'grep' | awk '{print $2}'`
 pid=`ps aux | grep keyboard-input.py | grep -v 'grep' | awk '{print $2}'`
 if [ -z "$pid" ];then
-    python $inputFile &
+    $inputFile &
     #echo "after pid !="$!
     #echo "after pid $="$$
 else

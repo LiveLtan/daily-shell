@@ -1,8 +1,49 @@
 #!/bin/bash
-echo
-host_git='/usr/bin/git'
-if test $1 = "r";then
-    git br -a | grep ">"
-else
-    git $@
-fi
+
+## on windows #!/usr/bin/env bash
+projectDir=`dirname "$PWD"`
+cd ${projectDir}
+
+#exit 0
+tmplateFile='.git/.template'
+git='/usr/bin/git'
+allBranch=`${git} branch -a`
+currentBranch=`${git} br -a | grep '*' | awk '{print $2}'`
+
+version=1
+versionsFile='versions.gradle'
+# get app version, indicated by versions file
+function getAppVersion() {
+    # maybe version name
+    line=`cat ${versionsFile} | grep "build_versions.version_code"`
+    version=${line#*=}
+    version=$(($version))
+}
+
+function configTemplate() {
+    template="${1}"
+    templateFile=${2}
+    echo -e "${template}" > ${tmplateFile}
+    ${git} config commit.template ${tmplateFile}
+}
+
+getAppVersion
+
+template="[Nbf/Internal/Bug]: 
+
+Cause: 
+Solution: 
+Fixed Version: ${version}
+Branch: ${currentBranch}
+
+# [NBF/INTERNAL/BUG]: 新功能的添加/内部添加的修改/BUG bug描述
+
+# Cause: 造成问题的原因
+# Solution: 如何解决的问题
+
+# Fixed Version: 修改提交完后的版本号 
+"
+configTemplate "${template}" $tmplateFile
+
+# process args into git
+${git} "$@"
