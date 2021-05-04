@@ -2,7 +2,8 @@
 
 # Max
 if [ "$(uname)" == "Darwin" ];then
-    shellRoot='/Users/tanlin/bin/'
+
+    shellRoot="${HOME}/bin/"
 # Linux
 elif ["$(expr substr $(uname -s) 1 5) "==" Linux" ];then
     shellRoot='/home/ltan/bin/'

@@ -1,0 +1,150 @@
+#!/bin/bash
+
+targetDir="$1"
+app="code"
+curDir="$(pwd)"
+localRepo="${HOME}/mvn_repo"
+appModule="code"
+
+## submodules, order by dependency
+## first is the deepest module, common,utils,logger,etc.
+modulesOrder=(
+voccommon
+vocutils
+voclogger
+voctheme
+voctranslations
+
+searchview
+
+viewpagerindicator
+termsandconditionsapi
+vocconfigurationapi
+cosmocalendar
+iclservicemobile
+iclsubscriptionmobile
+headerslibrary
+carsharingnetwork
+fliclib
+vocmaps
+voclocation
+servicesapi
+vocexternalapi
+
+vocwidgets
+vocnetwork
+
+vocinternal
+voccomponentframework
+
+
+inappengagement
+servicebooking
+
+hse
+)
+
+function getUpload() {
+    #repository(url: uri('${HOME}/tmp-repo'))
+    #repository(url: uri('../code/libs/repo'))
+    #repository(url: uri('${HOME}/.m2/repository'))
+    #repository(url: uri('${HOME}/mvn_repo'))
+
+    module=${1}
+    echo -e "\napply plugin: 'maven'
+group = 'se.volvo.${module}'
+version = '1.0.0'
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: uri('${localRepo}'))
+        }
+    }
+}"
+}
+
+function fixAppmodule() {
+    echo "fixing code module"
+    line="implementation files('\.\.\/voc"
+    file="${appModule}/build.gradle"
+    has=`grep "${line}" $file`
+    if [[ $? -eq 0 ]];then
+        sed -i '' "s/${line}/\/\/ ${line}/g" $file
+    fi
+
+    ## clear the last modify
+    sed -i '' "/.*mvn_repo.*/d" $file
+    sed -i '' "s/wearApp/\/\/ wearApp/g" $file
+    lastLine=`grep -n 'mavenCentral' $file | tail -1 | awk {'print $1'} | cut -d ':' -f1`
+    sed -i "" "${lastLine}a\\
+            \ \ \ \ maven { url '${localRepo}' }\\
+            " $file
+}
+
+function fixWidgetsModule() {
+    ## fix vocwidgets module first
+    sed -i '' "s/implementation project(path: ':viewpagerindicator')/\
+\/\/ implementation project(path: ':viewpagerindicator')/g" vocwidgets/build.gradle
+}
+
+echo "target=$targetDir curDir=$curDir"
+cd "$targetDir"
+
+### modify build.gradle file
+### dependency and minify flag
+
+
+fixWidgetsModule
+modify-dependency "${targetDir}"
+# sleep 5s
+# exit 0
+# ./gradlew tasks
+
+# location the faild line
+# set -e
+
+for file in "${modulesOrder[@]}"
+do
+    if [[ -d $file ]]; then
+        if test -f "$file/settings.gradle";then
+            mv "$file/settings.gradle" "$file/settings.gradle.bk"
+        fi
+
+        if test -f $file/build.gradle;then
+            # echo $file 是目录 "gradle project $(pwd)"
+            hasJob=`grep 'uploadArchives' "$file/build.gradle"`
+            if [[ "$?" -gt 0 ]];then
+                uploadJobStr=$(getUpload $file)
+                echo "generate upload job"
+                # echo "ret is ${uploadJobStr}"
+                echo "${uploadJobStr}" >> "${file}/build.gradle"
+            fi
+            ##################### build and upload
+            ## do not need the dir
+            # mkdir -p "${app}/libs/modules/${file}"
+            # echo -e "\n-------------------- building ${file} debug aar --------------------"
+            cd $file
+            # echo -e "\n------------------------ clean module ${file} ------------------------"
+            # ../gradlew clean
+            # # echo -e "------------------------ build module ${file} ------------------------"
+            # # ../gradlew assembleDebug
+            # echo -e "\n------------------------ uploda module ${file} ------------------------"
+            # ../gradlew uploadArchives
+            if [[ $? -eq 0 ]];then
+                result="success"
+            else
+                result="faild"
+            fi
+            echo -e "------------------------ upload module ${file} with ${result} ------------------------"
+            cd ../
+            ## roolback modify
+            if [[ "$file" != "servicebooking" ]];then
+                git checkout "${file}/build.gradle"
+            fi
+            # git checkout "${file}/build.gradle"
+            ##################### build and upload end
+        fi
+    fi
+done
+
+fixAppmodule

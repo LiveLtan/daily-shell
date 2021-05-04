@@ -1,0 +1,79 @@
+#!/bin/bash
+
+targetDir="${1}"
+curDir="$(pwd)"
+localRepo="${HOME}/mvn_repo"
+
+## exclude those below modules
+excludeModules=(
+    "wear"
+    "vocpush"
+)
+
+function shouldExclude() {
+    target="${1}"
+    # echo "call hasExclude $target in array $excludeModules"
+    for ex in "${excludeModules[@]}"
+    do
+        if [[ "${ex}" =~ "${target}" ]];then
+            return 1
+        fi
+    done
+    return 0
+}
+
+set +e
+
+cd "$targetDir"
+echo "modify all gradle files under dir:$targetDir"
+# for file in 'inappengagement'
+# for file in 'iclservicemobile'
+for file in `ls`
+do
+    shouldExclude "$file"
+    has="$?"
+    if test $has -gt 0;then
+        echo "---------------------------- skip the dir: $file"
+        continue
+    fi
+    if [[ -f "$file/build.gradle" ]]; then
+        # git checkout "$file/build.gradle"
+        rp-gradle "$file/build.gradle"
+    fi
+    ##echo "handle file $file"
+    if [[ ! -f "$file/build.gradle" ]];then
+        continue
+    fi
+    ## skip if already add
+    mavenLineNum=`grep -n "${localRepo}" "$file/build.gradle"`
+    if [[ $? -gt 0 ]];then
+        ##################### append maven local, file url
+        mavenLineNum=`grep -n 'mavenCentral' "$file/build.gradle"`
+        if [[ $? -eq 0 ]];then
+            mavenLineNum=`grep -n 'mavenCentral' "$file/build.gradle" | awk {'print $1'} | cut -d ':' -f1`
+            mavenLineNum=($mavenLineNum)
+            len=${#mavenLineNum[*]}
+            let len=(len-1)
+            for i in `seq $len -1 0`
+            do
+                line="${mavenLineNum[$i]}"
+                # sed -i "" "${mavenLineNum}a\\    maven { url '\\.\\.\/code\/libs\/repo' }\\" $file/build.gradle
+                sed -i '' "${line}a\\
+                \ \ \ \ maven { url '${localRepo}' }\\
+                " $file/build.gradle
+            done
+        fi
+        ## handle no mavenCentral module
+        mavenLineNum=`grep -n 'google()' "$file/build.gradle"`
+        if [[ $? -eq 0 ]];then
+            mavenLineNum=`grep -n 'google()' "$file/build.gradle" | awk {'print $1'} | cut -d ':' -f1`
+            # sed -i "" "${mavenLineNum}a\\    maven { url '\\.\\.\/code\/libs\/repo' }\\" $file/build.gradle
+            sed -i '' "${mavenLineNum}a\\
+            \ \ \ \ maven { url '${localRepo}' }\\
+            " $file/build.gradle
+        fi
+        ##################### append maven local, file url  end
+    fi
+done
+
+cd ${curDir}

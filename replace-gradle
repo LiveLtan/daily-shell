@@ -1,0 +1,59 @@
+#!/bin/bash
+
+targetGradleFile="$1"
+appModule="code"
+
+excludeModules=(
+    "vocpush"
+    "servicebooking"
+    "wear"
+)
+hasProjectRow=`grep -e "':" $targetGradleFile`
+if [[ $? -gt 0 ]];then
+    exit 0
+fi
+rows=`grep -e "':" $targetGradleFile | grep -v '//' | cut -d "'" -f2 | cut -d ":" -f2`
+count=`echo "$rows" | wc -l | awk {'print $1'}`
+echo "found $count dependency line in $targetGradleFile"
+
+function hasExclude() {
+    target="${1}"
+    # echo "call hasExclude $target in array $excludeModules"
+    for ex in "${excludeModules[@]}"
+    do
+        if [[ "${ex}" =~ "${target}" ]];then
+            return 1
+        fi
+    done
+    return 0
+}
+# set -e
+# for i in `seq "$count"`
+# for i in `seq 2`
+rows=(${rows})
+for module in "${rows[@]}"
+do
+    ## just ignore warning
+    sed -i "" "s/kotlinOptions.allWarningsAsErrors = true/kotlinOptions.allWarningsAsErrors = false/g" "${targetGradleFile}"
+    if [[ "${module}" != "${appModule}" ]];then
+        ## do not optiomse library
+        sed -i "" "s/minifyEnabled\ true/minifyEnabled false/g" "${targetGradleFile}"
+    fi
+    hasExclude "$module"
+    has="$?"
+    if test $has -gt 0;then
+        continue
+    fi
+
+    lineNum=`grep -n "':${module}" $targetGradleFile`
+    if [[ $? -gt 0 ]];then
+        echo "not found project dependency"
+        continue
+    fi
+
+    lineNum=`grep -n "':${module}" $targetGradleFile | grep -v '//' | awk {'print $1'} | cut -d ':' -f1`
+    line="    implementation 'se.volvo.${module}:${module}:1.0.0'"
+    echo "$module line:$lineNum, to:$line"
+    sed -i '' "${lineNum}s/.*/${line}/g" "${targetGradleFile}"
+done
+
